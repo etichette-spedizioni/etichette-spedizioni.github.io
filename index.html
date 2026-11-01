@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>Etichette</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{min-height:100vh;display:grid;place-items:center;padding:22px}
+#pick{appearance:none;border:0;border-radius:12px;background:#111;color:white;padding:19px 30px;font:600 18px system-ui;cursor:pointer;min-width:min(280px,90vw)}
+#pick:disabled{opacity:.55;cursor:wait}
+#files{display:none}#status{margin-top:16px;text-align:center;color:#555;font-size:14px;max-width:320px;min-height:20px}
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <input id="files" type="file" accept="application/pdf,.pdf" multiple>
+    <button id="pick" type="button">＋ Seleziona i PDF</button>
+    <div id="status" role="status" aria-live="polite"></div>
+  </div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+ 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const input=document.getElementById('files');
+const button=document.getElementById('pick');
+const status=document.getElementById('status');
+const A4={w:595.276,h:841.89}, M=14, GAP=8;
+
+button.addEventListener('click',()=>input.click());
+input.addEventListener('change',async()=>{
+ if(!input.files.length)return;
+ button.disabled=true; status.textContent='Elaborazione dei PDF…';
+ try{
+   const labels=[];
+   for(const file of input.files){
+     const bytes=await file.arrayBuffer();
+     const pdf=await pdfjsLib.getDocument({data:bytes.slice(0)}).promise;
+     for(let p=1;p<=pdf.numPages;p++){
+       const page=await pdf.getPage(p);
+       const vp=page.getViewport({scale:1});
+       const canvas=document.createElement('canvas');
+       const scale=1.5;
+       const renderVp=page.getViewport({scale});
+       canvas.width=Math.ceil(renderVp.width);canvas.height=Math.ceil(renderVp.height);
+       await page.render({canvasContext:canvas.getContext('2d'),viewport:renderVp}).promise;
+       const crop=detectLabel(canvas);
+       if(!crop) throw new Error(`Non riesco a riconoscere l'etichetta in "${file.name}", pagina ${p}.`);
+       // PDF.js viewport coordinates use top-left origin; convert to PDF coordinates.
+       const sx=vp.width/canvas.width, sy=vp.height/canvas.height;
+       const pad=1.5;
+       const x=Math.max(0,crop.x*sx-pad), y=Math.max(0,crop.y*sy-pad);
+       const w=Math.min(vp.width-x,crop.w*sx+2*pad);
+       const h=Math.min(vp.height-y,crop.h*sy+2*pad);
+       // viewport 1:1 maps to page points; convert top-left y to PDF bottom-left.
+       const pdfY=vp.height-y-h;
+       labels.push({bytes,name:file.name,pageIndex:p-1,x,y:pdfY,w,h});
+     }
+   }
+   if(!labels.length)throw new Error('Nessuna etichetta trovata.');
+   const output=await compose(labels);
+   const blob=new Blob([output],{type:'application/pdf'});
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement('a');a.href=url;a.download='etichette_ottimizzate_A4.pdf';
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),30000);
+   status.textContent=`Completato: ${labels.length} etichette.`;
+ }catch(e){status.textContent=e.message||'Errore durante la creazione del PDF.';}
+ finally{button.disabled=false;input.value='';}
+});
+
+function detectLabel(canvas){
+ // Heuristica: cerca una cornice rettangolare scura estesa. Evita di includere
+ // l'intestazione/istruzioni usando la regione rettangolare più grande.
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});
+ const {width:W,height:H}=canvas;
+ const data=ctx.getImageData(0,0,W,H).data;
+ const gray=(x,y)=>{const i=(y*W+x)*4;return (data[i]+data[i+1]+data[i+2])/3;};
+ // Accumula pixel scuri per righe/colonne; le cornici di etichetta generano
+ // tratti orizzontali e verticali lunghi e con densità consistente.
+ const row=new Int32Array(H), col=new Int32Array(W);
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(gray(x,y)<105){row[y]++;col[x]++;}
+ const minX=Math.floor(W*.08),maxX=Math.ceil(W*.92);
+ const minY=Math.floor(H*.08),maxY=Math.ceil(H*.98);
+ const hLines=[],vLines=[];
+ for(let y=minY;y<maxY;y++)if(row[y]>(maxX-minX)*.42)hLines.push(y);
+ for(let x=minX;x<maxX;x++)if(col[x]>(maxY-minY)*.28)vLines.push(x);
+ const groups=(arr,gap=5)=>{let out=[];for(const n of arr){if(!out.length||n-out[out.length-1].at(-1)>gap)out.push([n]);else out[out.length-1].push(n);}return out.map(a=>Math.round(a.reduce((s,v)=>s+v,0)/a.length));};
+ const hs=groups(hLines),vs=groups(vLines);
+ let best=null,score=0;
+ for(let i=0;i<hs.length;i++)for(let j=i+1;j<hs.length;j++){
+  const y0=hs[i],y1=hs[j],hh=y1-y0;if(hh<H*.18||hh>H*.95)continue;
+  for(let k=0;k<vs.length;k++)for(let l=k+1;l<vs.length;l++){
+   const x0=vs[k],x1=vs[l],ww=x1-x0;if(ww<W*.18||ww>W*.95)continue;
+   const ratio=ww/hh;if(ratio<.22||ratio>4.2)continue;
+   const s=ww*hh;
+   if(s>score){score=s;best={x:x0,y:y0,w:ww,h:hh};}
+  }
+ }
+ if(best)return best;
+ // Fallback conservativo: bounding box della parte bassa della pagina, dove
+ // normalmente si trova il label block nei PDF con istruzioni sovrastanti.
+ // Se non è distinguibile, restituisce null invece di tagliare alla cieca.
+ const yStart=Math.floor(H*.28), xStart=Math.floor(W*.04), xEnd=Math.floor(W*.96);
+ let x0=W,y0=H,x1=0,y1=0,count=0;
+ for(let y=yStart;y<H;y+=2)for(let x=xStart;x<xEnd;x+=2)if(gray(x,y)<185){
+  x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);count++;
+ }
+ if(count<500||x1-x0<W*.25||y1-y0<H*.18)return null;
+ return {x:x0,y:y0,w:x1-x0,h:y1-y0};
+}
+
+async function compose(labels){
+ const {PDFDocument,degrees}=PDFLib;
+ const out=await PDFDocument.create();
+ const sourceCache=new Map();
+ const embedded=[];
+ for(const l of labels){
+  let src=sourceCache.get(l.bytes);
+  if(!src){src=await PDFDocument.load(l.bytes);sourceCache.set(l.bytes,src);}
+  // Crop in PDF coordinates; the embedded page retains vector text/barcodes.
+  const [ep]=await out.embedPdf(src,[l.pageIndex],[{
+    left:l.x,bottom:l.y,right:l.x+l.w,top:l.y+l.h
+  }]);
+  embedded.push({...l,embedded:ep});
+ }
+ const pages=pack(embedded);
+ for(const items of pages){
+  const page=out.addPage([A4.w,A4.h]);
+  for(const item of items){
+   const {x,y,w,h,rot,embedded:ep}=item;
+   page.drawPage(ep,{x,y,width:w,height:h,rotate:rot?degrees(90):degrees(0)});
+  }
+ }
+ return await out.save();
+}
+
+function pack(labels){
+ let free=[[[M,M,A4.w-2*M,A4.h-2*M]]], placed=[[]];
+ const sorted=[...labels].sort((a,b)=>b.w*b.h-a.w*a.h);
+ for(const lab of sorted){
+  let best=null;
+  free.forEach((spaces,pi)=>spaces.forEach((s,si)=>{
+   for(const rot of [false,true]){
+    const w=rot?lab.h:lab.w,h=rot?lab.w:lab.h;
+    if(w<=s[2]&&h<=s[3]){
+     const score=[Math.min(s[2]-w,s[3]-h),Math.max(s[2]-w,s[3]-h),pi];
+     if(!best||compare(score,best.score)<0)best={score,pi,si,x:s[0],y:s[1],w,h,rot};
+    }
+   }
+  }));
+  if(!best){free.push([[M,M,A4.w-2*M,A4.h-2*M]]);placed.push([]);
+   const pi=free.length-1;
+   free[pi].forEach((s,si)=>{for(const rot of [false,true]){
+    const w=rot?lab.h:lab.w,h=rot?lab.w:lab.h;
+    if(w<=s[2]&&h<=s[3]){
+     const score=[Math.min(s[2]-w,s[3]-h),Math.max(s[2]-w,s[3]-h),pi];
+     if(!best||compare(score,best.score)<0)best={score,pi,si,x:s[0],y:s[1],w,h,rot};
+    }
+   }});
+  }
+  if(!best)throw new Error(`Un'etichetta (${(lab.w/72).toFixed(2)} × ${(lab.h/72).toFixed(2)} pollici) non entra su A4 senza ridimensionarla.`);
+  placed[best.pi].push({...lab,...best});
+  const s=free[best.pi].splice(best.si,1)[0];
+  const right=[best.x+best.w+GAP,s[1],Math.max(0,s[0]+s[2]-best.x-best.w-GAP),s[3]];
+  const bottom=[s[0],best.y+best.h+GAP,s[2],Math.max(0,s[1]+s[3]-best.y-best.h-GAP)];
+  if(right[2]>1&&right[3]>1)free[best.pi].push(right);
+  if(bottom[2]>1&&bottom[3]>1)free[best.pi].push(bottom);
+  free[best.pi]=free[best.pi].filter((a,i,arr)=>!arr.some((b,j)=>i!==j&&a[0]>=b[0]&&a[1]>=b[1]&&a[0]+a[2]<=b[0]+b[2]&&a[1]+a[3]<=b[1]+b[3]));
+ }
+ return placed;
+}
+function compare(a,b){for(let i=0;i<a.length;i++){if(a[i]<b[i])return -1;if(a[i]>b[i])return 1;}return 0;}
+</script>
+</body>
+</html>
