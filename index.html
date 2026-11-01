@@ -349,15 +349,14 @@ async function findOccupiedRegions(pdfPage, viewportAtOne, mode) {
 }
 
 async function embedLabel(out, item) {
-  const embeddedPages = await out.embedPdf(
-    item.sourceDoc,
-    [item.pageIndex],
-    item.crop ? [item.crop] : undefined
+  const sourcePage = item.sourceDoc.getPages()[item.pageIndex];
+
+  return await out.embedPage(
+    sourcePage,
+    item.crop || undefined
   );
-
-  return embeddedPages[0];
 }
-
+  
 async function compose(inpostLabels, otherLabels) {
   const { PDFDocument } = PDFLib;
   const out = await PDFDocument.create();
