@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>Etichette spedizioni</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#f5f6f7;color:#171717;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{width:min(900px,100%);margin:0 auto;padding:28px 18px 48px;display:flex;flex-direction:column;align-items:center;gap:18px}
+#pick{appearance:none;border:0;border-radius:12px;background:#161616;color:#fff;padding:17px 28px;font:650 17px system-ui;cursor:pointer;min-width:min(300px,92vw);box-shadow:0 2px 8px #00000016}
+#pick:disabled{opacity:.55;cursor:wait}
+#files{display:none}
+#status{min-height:24px;color:#555;font-size:14px;text-align:center;max-width:680px;line-height:1.45}
+#result{display:none;width:100%;}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 14px}
+.result-head h2{font-size:17px;font-weight:650;margin:0}
+#download{color:#1558b0;text-decoration:underline;text-underline-offset:3px;font-size:14px;font-weight:600}
+#preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px;align-items:start}
+.preview-page{background:#fff;border:1px solid #d8dadd;border-radius:10px;padding:10px;box-shadow:0 2px 8px #0000000b}
+.page-name{font-size:12px;color:#666;margin:0 0 8px}
+.preview-page canvas{display:block;width:100%;height:auto;background:#fff}
+.note{font-size:12px;color:#777;text-align:center;line-height:1.45;max-width:650px}
+@media(max-width:520px){main{padding:20px 12px 32px}#preview{grid-template-columns:1fr}.preview-page{padding:7px}}
+</style>
+</head>
+<body>
+<main>
+  <input id="files" type="file" accept="application/pdf,.pdf" multiple>
+  <button id="pick" type="button">＋ Seleziona i PDF</button>
+  <div id="status" role="status" aria-live="polite">Carica le etichette: il PDF verrà preparato qui, senza inviare i file a un server.</div>
+  <section id="result" aria-live="polite">
+    <div class="result-head">
+      <h2>Anteprima del PDF A4</h2>
+      <a id="download" href="#" download="etichette_pronte_A4.pdf">Scarica il PDF pronto</a>
+    </div>
+    <div id="preview"></div>
+  </section>
+  <div class="note">Le etichette vengono mantenute alla dimensione fisica originale. Prima di stampare, verifica l'anteprima e imposta la stampa al 100% / dimensioni effettive.</div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+'use strict';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const input = document.getElementById('files');
+const button = document.getElementById('pick');
+const statusBox = document.getElementById('status');
+const result = document.getElementById('result');
+const preview = document.getElementById('preview');
+const download = document.getElementById('download');
+
+const A4 = { width: 595.2756, height: 841.8898 };
+const HALF_W = A4.width / 2;
+const HALF_H = A4.height / 2;
+let currentUrl = null;
+
+button.addEventListener('click', () => input.click());
+input.addEventListener('change', async () => {
+  if (!input.files || input.files.length === 0) return;
+  button.disabled = true;
+  result.style.display = 'none';
+  preview.replaceChildren();
+  statusBox.textContent = 'Sto leggendo e organizzando le etichette…';
+  try {
+    const inpost = [];
+    const other = [];
+    let inpostCount = 0;
+    let otherCount = 0;
+
+    for (const file of Array.from(input.files)) {
+      if (file.type && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        continue;
+      }
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const pdfJsDoc = await pdfjsLib.getDocument({ data: bytes.slice() }).promise;
+      const sourceDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: false });
+
+      for (let pageNumber = 1; pageNumber <= pdfJsDoc.numPages; pageNumber++) {
+        statusBox.textContent = `Analisi: ${file.name} — pagina ${pageNumber}/${pdfJsDoc.numPages}…`;
+        const jsPage = await pdfJsDoc.getPage(pageNumber);
+        const viewport = jsPage.getViewport({ scale: 1 });
+        const textContent = await jsPage.getTextContent();
+        const text = textContent.items.map(item => item.str || '').join(' ').toLowerCase();
+        const kind = classifyPage(text, viewport.width, viewport.height);
+        if (!kind) {
+          throw new Error(`Formato non riconosciuto: ${file.name}, pagina ${pageNumber}. Ho riconosciuto InPost, le etichette con istruzioni e BRT.`);
+        }
+
+        const crop = getCrop(kind, viewport.width, viewport.height);
+        const pageIndex = pageNumber - 1;
+        const item = {
+          fileName: file.name,
+          pageNumber,
+          sourceDoc,
+          pageIndex,
+          kind,
+          crop,
+          width: crop ? crop.right - crop.left : viewport.width,
+          height: crop ? crop.top - crop.bottom : viewport.height
+        };
+        if (kind === 'inpost') { inpost.push(item); inpostCount++; }
+        else { other.push(item); otherCount++; }
+      }
+    }
+
+    if (inpost.length + other.length === 0) throw new Error('Non ho trovato etichette nei PDF selezionati.');
+    const outputBytes = await compose(inpost, other);
+    const blob = new Blob([outputBytes], { type: 'application/pdf' });
+    if (currentUrl) URL.revokeObjectURL(currentUrl);
+    currentUrl = URL.createObjectURL(blob);
+    download.href = currentUrl;
+    result.style.display = 'block';
+    await renderPreview(outputBytes);
+    const inpostSheets = Math.ceil(inpostCount / 4);
+    const otherSheets = Math.ceil(otherCount / 2);
+    statusBox.textContent = `Pronto: ${inpostCount} InPost in ${inpostSheets} fogli; ${otherCount} BRT/etichette con istruzioni in ${otherSheets} fogli. Totale: ${inpostSheets + otherSheets} pagine A4.`;
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    statusBox.textContent = error && error.message ? error.message : 'Errore durante la preparazione del PDF.';
+    result.style.display = 'none';
+  } finally {
+    button.disabled = false;
+    input.value = '';
+  }
+});
+
+function classifyPage(text, width, height) {
+  const aspect = width / height;
+  if (text.includes('deposito') && text.includes('giro') && text.includes('mittente') && aspect > 0.60 && aspect < 0.78) {
+    return 'inpost';
+  }
+  if ((text.includes("stampare l'etichetta") || text.includes('imballare tutto in modo sicuro')) && text.includes('order reference')) {
+    return 'instructions';
+  }
+  if (text.includes('brt s.p.a.') || text.includes('www.dpd.com') || text.includes('terms & conditions of services')) {
+    return 'brt';
+  }
+  return null;
+}
+
+// coordinate delle finestre di ritaglio rispetto al bordo pagina, in punti PDF.
+// Le aree contengono soltanto l'etichetta: il testo informativo superiore resta fuori.
+function getCrop(kind, width, height) {
+  if (kind === 'inpost') return null; // etichetta InPost 297 x 421 pt, già isolata.
+  if (kind === 'instructions') {
+    return {
+      left: width * 0.143277,
+      bottom: height * (1 - 0.956942),
+      right: width * 0.856723,
+      top: height * (1 - 0.620439)
+    };
+  }
+  if (kind === 'brt') {
+    return {
+      left: width * 0.075427,
+      bottom: height * (1 - 0.625973),
+      right: width * 0.542102,
+      top: height * (1 - 0.175082)
+    };
+  }
+  throw new Error('Tipo di etichetta non gestito.');
+}
+
+async function embedLabel(out, item) {
+  const indices = [item.pageIndex];
+  const boundingBoxes = item.crop ? [item.crop] : undefined;
+  const embeddedPages = await out.embedPdf(item.sourceDoc, indices, boundingBoxes);
+  return embeddedPages[0];
+}
+
+async function compose(inpostLabels, otherLabels) {
+  const { PDFDocument } = PDFLib;
+  const out = await PDFDocument.create();
+
+  // InPost: quattro posizioni fisse, nell'ordine alto-sinistra, alto-destra,
+  // basso-sinistra, basso-destra. I posti non usati restano vuoti.
+  for (let start = 0; start < inpostLabels.length; start += 4) {
+    const page = out.addPage([A4.width, A4.height]);
+    const batch = inpostLabels.slice(start, start + 4);
+    for (let slot = 0; slot < batch.length; slot++) {
+      const item = batch[slot];
+      const embedded = await embedLabel(out, item);
+      const col = slot % 2;
+      const row = Math.floor(slot / 2); // 0 = riga superiore
+      const x = col * HALF_W + (HALF_W - embedded.width) / 2;
+      const y = row === 0
+        ? HALF_H + (HALF_H - embedded.height) / 2
+        : (HALF_H - embedded.height) / 2;
+      page.drawPage(embedded, { x, y, width: embedded.width, height: embedded.height });
+    }
+  }
+
+  // BRT e pagine con istruzioni: due posizioni fisse (sopra e sotto),
+  // mantenendo sempre larghezza, altezza e orientamento di ciascuna etichetta.
+  for (let start = 0; start < otherLabels.length; start += 2) {
+    const page = out.addPage([A4.width, A4.height]);
+    const batch = otherLabels.slice(start, start + 2);
+    for (let slot = 0; slot < batch.length; slot++) {
+      const item = batch[slot];
+      const embedded = await embedLabel(out, item);
+      if (embedded.width > A4.width || embedded.height > HALF_H) {
+        throw new Error(`L'etichetta ${item.fileName}, pagina ${item.pageNumber}, non entra nel proprio spazio A4 senza ridimensionarla.`);
+      }
+      const x = (A4.width - embedded.width) / 2;
+      const y = slot === 0
+        ? HALF_H + (HALF_H - embedded.height) / 2
+        : (HALF_H - embedded.height) / 2;
+      page.drawPage(embedded, { x, y, width: embedded.width, height: embedded.height });
+    }
+  }
+
+  return await out.save();
+}
+
+async function renderPreview(pdfBytes) {
+  preview.replaceChildren();
+  const pdf = await pdfjsLib.getDocument({ data: pdfBytes.slice() }).promise;
+  for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+    const page = await pdf.getPage(pageNo);
+    const host = document.createElement('article');
+    host.className = 'preview-page';
+    const title = document.createElement('p');
+    title.className = 'page-name';
+    title.textContent = `Foglio A4 ${pageNo} di ${pdf.numPages}`;
+    const canvas = document.createElement('canvas');
+    const base = page.getViewport({ scale: 1 });
+    const scale = Math.min(1.35, 660 / base.width);
+    const viewport = page.getViewport({ scale });
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    host.append(title, canvas);
+    preview.append(host);
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  }
+}
+</script>
+</body>
+</html>
