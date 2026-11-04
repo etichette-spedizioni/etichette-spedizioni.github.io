@@ -2220,5 +2220,33 @@ async function renderPreview(pdfBytes){
 })();
 </script>
 
+
+<script>
+document.querySelectorAll('.site-tab').forEach(button => {
+  button.addEventListener('click', () => {
+
+    const target = button.dataset.panel;
+
+    // Aggiorna i pulsanti
+    document.querySelectorAll('.site-tab').forEach(tab => {
+      tab.classList.toggle('active', tab === button);
+      tab.setAttribute(
+        'aria-selected',
+        String(tab === button)
+      );
+    });
+
+    // Mostra la sezione selezionata
+    document.querySelectorAll('.tool-panel').forEach(panel => {
+      panel.classList.toggle(
+        'active',
+        panel.id === target
+      );
+    });
+
+  });
+});
+</script>
+
 </body>
 </html>
