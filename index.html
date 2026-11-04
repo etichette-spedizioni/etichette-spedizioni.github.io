@@ -3,323 +3,181 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffffff">
-<title>Strumenti personali</title>
-
+<title>Etichette Vinted e analisi Revolut</title>
 <style>
 :root{color-scheme:light}
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:#f5f6f7;color:#171717;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-main{width:min(900px,100%);margin:0 auto;padding:28px 18px 48px;display:flex;flex-direction:column;align-items:center;gap:18px}
-#pick{appearance:none;border:0;border-radius:12px;background:#161616;color:#fff;padding:17px 28px;font:650 17px system-ui;cursor:pointer;min-width:min(300px,92vw)}
-#pick:disabled{opacity:.55;cursor:wait}
-#files{display:none}
-#status{min-height:24px;color:#555;font-size:14px;text-align:center;max-width:680px;line-height:1.45}
-#result{display:none;width:100%}
-.result-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 14px}
-.result-head h2{font-size:17px;font-weight:650;margin:0}
-#download{color:#1558b0;text-decoration:underline;text-underline-offset:3px;font-size:14px;font-weight:600}
-#preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px;align-items:start}
-.preview-page{background:#fff;border:1px solid #d8dadd;border-radius:10px;padding:10px}
-.page-name{font-size:12px;color:#666;margin:0 0 8px}
-.preview-page canvas{display:block;width:100%;height:auto;background:#fff}
-.note{font-size:12px;color:#777;text-align:center;line-height:1.45;max-width:650px}
-
-.site-main{width:min(1100px,100%);margin:0 auto;padding:28px 18px 48px;display:flex;flex-direction:column;align-items:stretch;gap:16px}
-.site-header{width:100%;padding:2px 0 4px}
-.site-header h1{font-size:clamp(25px,4vw,34px);line-height:1.15;margin:0 0 7px;letter-spacing:-.6px}
-.site-header p{color:#5d6670;margin:0;font-size:14px}
-.site-tabs{display:flex;gap:8px;width:100%;border-bottom:1px solid #d9dde2;padding-bottom:10px;flex-wrap:wrap}
-.site-tab{border:1px solid #d3d8df;border-radius:999px;background:#fff;color:#303944;padding:10px 16px;font:650 14px system-ui;cursor:pointer}
+html,body{margin:0;min-height:100%;background:#fff;color:#171717;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.site-main{width:min(1000px,100%);margin:0 auto;padding:30px 18px 48px;display:flex;flex-direction:column;align-items:stretch;gap:20px}
+.site-header h1{font-size:clamp(25px,4vw,34px);line-height:1.2;margin:0;letter-spacing:-.65px;font-weight:700}
+.site-tabs{display:flex;gap:8px;border-bottom:1px solid #e4e4e4;padding-bottom:12px}
+.site-tab{border:1px solid #d4d4d4;border-radius:8px;background:#fff;color:#171717;padding:10px 16px;font:600 14px system-ui;cursor:pointer}
 .site-tab.active{background:#171717;color:#fff;border-color:#171717}
 .tool-panel{width:100%}
-#shippingPanel{display:flex;flex-direction:column;align-items:center;gap:18px}
-.tool-panel:not(.active),#shippingPanel:not(.active){display:none}
-.hidden{display:none!important}
+.tool-panel:not(.active){display:none}
+#shippingPanel:not(.active){display:none}
+#shippingPanel{display:flex;flex-direction:column;align-items:center;gap:0;text-align:center;padding-top:26px}
+.shipping-instruction{font-size:clamp(18px,2.5vw,22px);line-height:1.45;font-weight:550;max-width:700px;margin:0 0 24px;color:#171717}
+#files{display:none}
+#pick{appearance:none;border:1px solid #171717;border-radius:9px;background:#171717;color:#fff;padding:14px 26px;font:650 16px system-ui;cursor:pointer;min-width:220px}
+#pick:disabled{opacity:.55;cursor:wait}
+#status{display:none;margin-top:20px;color:#555;font-size:14px;text-align:center;max-width:720px;line-height:1.5}
+#result{display:none;width:100%;margin-top:24px;text-align:left}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 14px}
+.result-head h2{font-size:17px;font-weight:650;margin:0}
+#download{color:#171717;text-decoration:underline;text-underline-offset:3px;font-size:14px;font-weight:650}
+#preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px;align-items:start}
+.preview-page{background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px}
+.page-name{font-size:12px;color:#666;margin:0 0 8px}
+.preview-page canvas{display:block;width:100%;height:auto;background:#fff}
 
-#revolutPanel{color:#17212b}
-.rv-card{background:#fff;border:1px solid #dce2e8;border-radius:15px;padding:19px;margin:14px 0}
-.rv-card h2{font-size:18px;margin:0 0 14px}
-.rv-help{font-size:13px;color:#687584;line-height:1.5;margin:8px 0 0}
-.rv-upload{border:1.5px dashed #aebbc8;border-radius:12px;background:#fafcff;padding:22px;text-align:center}
-.rv-upload input{max-width:100%;font:14px system-ui}
-.rv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.rv-metric{background:#f5f7fa;border-radius:12px;padding:14px;min-width:0}
-.rv-metric span{display:block;font-size:12px;color:#687584}
-.rv-metric strong{display:block;font-size:clamp(19px,3vw,27px);margin-top:5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.rv-fields{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:12px;align-items:end}
+#revolutPanel{padding-top:4px;color:#171717}
+.rv-card{background:#fff;border:1px solid #e1e1e1;border-radius:12px;padding:18px;margin:14px 0}
+.rv-card h2{font-size:19px;margin:0 0 16px;font-weight:650}
+.rv-source-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.rv-source{border:1px solid #dedede;border-radius:9px;padding:14px;min-width:0}
+.rv-source label{display:block;font-size:13px;font-weight:650;margin-bottom:9px}
+.rv-source input[type=file]{max-width:100%;font:13px system-ui}
+.rv-source input[type=text],.rv-source input[type=url]{width:100%;border:1px solid #ccc;border-radius:7px;padding:10px;font:14px system-ui;min-width:0}
+.rv-source button{margin-top:9px}
+.rv-file-name{font-size:12px;color:#666;margin-top:8px;overflow-wrap:anywhere}
+.rv-fields{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px;align-items:end}
 .rv-field label{display:block;font-weight:650;font-size:13px;margin-bottom:6px}
-.rv-field input,.rv-field select{width:100%;border:1px solid #cbd4dd;border-radius:9px;padding:10px 11px;font:14px system-ui;background:#fff;color:#17212b;min-width:0}
-.rv-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
-.rv-button{border:0;border-radius:9px;padding:10px 15px;background:#171717;color:white;font:650 14px system-ui;cursor:pointer}
-.rv-button.secondary{background:#edf0ff;color:#3730a3}
-.rv-button:disabled{opacity:.5;cursor:wait}
-#rvStatus{font-size:13px;color:#627080;line-height:1.5;margin-top:11px;white-space:pre-wrap}
-.rv-summary-line{font-size:13px;color:#5f6b79;margin:12px 0 0}
+.rv-field input{width:100%;border:1px solid #ccc;border-radius:8px;padding:10px 11px;font:14px system-ui;background:#fff;color:#171717;min-width:0}
+.rv-field input::placeholder{color:#999}
+.rv-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.rv-button{border:1px solid #171717;border-radius:8px;padding:10px 15px;background:#171717;color:#fff;font:650 14px system-ui;cursor:pointer}
+.rv-button.secondary{background:#fff;color:#171717}
+.rv-button:disabled{opacity:.45;cursor:wait}
+#rvStatus{display:none;font-size:13px;color:#555;line-height:1.5;margin-top:12px;white-space:pre-wrap}
+.rv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.rv-metric{background:#f6f6f6;border-radius:9px;padding:13px;min-width:0}
+.rv-metric span{display:block;font-size:12px;color:#666}
+.rv-metric strong{display:block;font-size:clamp(17px,2.6vw,23px);margin-top:5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;white-space:pre-line}
+.rv-summary-line{font-size:13px;color:#555;margin:12px 0 0}
 .rv-table-wrap{overflow:auto}
-.rv-table{width:100%;border-collapse:collapse;font-size:13px;min-width:620px}
-.rv-table th,.rv-table td{padding:10px 8px;border-bottom:1px solid #e7ebef;text-align:left;vertical-align:top}
-.rv-table th{color:#667281;font-weight:650;white-space:nowrap}
+.rv-table{width:100%;border-collapse:collapse;font-size:13px;min-width:600px}
+.rv-table th,.rv-table td{padding:10px 8px;border-bottom:1px solid #e8e8e8;text-align:left;vertical-align:top}
+.rv-table th{color:#666;font-weight:650;white-space:nowrap}
 .rv-table td.num,.rv-table th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.rv-positive{color:#137a52;font-weight:700}
 .rv-chart{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.rv-chart-row{display:grid;grid-template-columns:94px minmax(30px,1fr) 112px;gap:10px;align-items:center;font-size:12px}
-.rv-bar-track{height:13px;background:#eef1f5;border-radius:99px;overflow:hidden}
-.rv-bar{height:100%;background:#635bff;border-radius:99px;min-width:2px}
+.rv-chart-row{display:grid;grid-template-columns:110px minmax(30px,1fr) 125px;gap:10px;align-items:center;font-size:12px}
+.rv-bar-track{height:11px;background:#eee;border-radius:99px;overflow:hidden}
+.rv-bar{height:100%;background:#222;border-radius:99px;min-width:2px}
 .rv-month-total{text-align:right;font-variant-numeric:tabular-nums;font-weight:650}
-.rv-empty{padding:15px;background:#f7f9fb;border-radius:10px;color:#657180;font-size:13px}
-.rv-warning{background:#fff8e7;border:1px solid #efdfb7;padding:12px;border-radius:10px;color:#69521c;font-size:12px;line-height:1.5}
-.rv-file-name{font-size:13px;color:#566271;margin-top:9px;overflow-wrap:anywhere}
-
-@media(max-width:760px){
-.rv-fields{grid-template-columns:1fr 1fr}
-.rv-grid{grid-template-columns:1fr 1fr}
-}
-@media(max-width:520px){
-main{padding:20px 12px 32px}
-.site-main{padding:20px 12px 32px}
-.site-tab{flex:1;padding:10px 8px}
-.rv-card{padding:15px}
-.rv-fields,.rv-grid{grid-template-columns:1fr}
-.rv-chart-row{grid-template-columns:76px minmax(25px,1fr) 94px;gap:7px}
-#preview{grid-template-columns:1fr}
-.preview-page{padding:7px}
-}
+.rv-empty{padding:14px;background:#f7f7f7;border-radius:8px;color:#666;font-size:13px}
+.hidden{display:none!important}
+@media(max-width:760px){.rv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rv-fields{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.site-main{padding:22px 13px 34px}.site-tabs{gap:6px}.site-tab{flex:1;padding:10px 7px;font-size:13px}.shipping-instruction{font-size:19px}.rv-source-grid,.rv-fields,.rv-grid{grid-template-columns:1fr}.rv-card{padding:14px}.rv-chart-row{grid-template-columns:84px minmax(25px,1fr) 105px;gap:7px}}
 </style>
 </head>
-
 <body>
-
 <main class="site-main">
+  <header class="site-header">
+    <h1>Prepara le etichette Vinted oppure analizza le tue entrate.</h1>
+  </header>
 
-<header class="site-header">
-<h1>Strumenti personali</h1>
-<p>Prepara le etichette oppure analizza le tue entrate Revolut.</p>
-</header>
+  <nav class="site-tabs" aria-label="Seleziona strumento">
+    <button class="site-tab active" type="button" data-panel="shippingPanel" aria-selected="true">Etichette Vinted</button>
+    <button class="site-tab" type="button" data-panel="revolutPanel" aria-selected="false">Analisi entrate</button>
+  </nav>
 
-<nav class="site-tabs" aria-label="Seleziona strumento">
-<button class="site-tab active" type="button" data-panel="shippingPanel" aria-selected="true">Etichette spedizioni</button>
-<button class="site-tab" type="button" data-panel="revolutPanel" aria-selected="false">Analisi Revolut</button>
-</nav>
+  <section id="shippingPanel" class="tool-panel active">
+    <p class="shipping-instruction">Seleziona uno o più PDF. Puoi aggiungere etichette anche a un PDF già preparato con questo sito.</p>
+    <input id="files" type="file" accept="application/pdf,.pdf" multiple>
+    <button id="pick" type="button">Seleziona i PDF</button>
+    <div id="status" role="status" aria-live="polite"></div>
+    <section id="result" aria-live="polite">
+      <div class="result-head">
+        <h2>Anteprima del PDF A4</h2>
+        <a id="download" href="#" download="etichette_pronte_A4.pdf">Scarica il PDF pronto</a>
+      </div>
+      <div id="preview"></div>
+    </section>
+  </section>
 
-<!-- ======================================
-     PRIMO STRUMENTO: ETICHETTE SPEDIZIONI
-====================================== -->
+  <section id="revolutPanel" class="tool-panel" aria-labelledby="revolutTitle">
+    <div class="rv-card">
+      <h2 id="revolutTitle">Analisi delle entrate Revolut</h2>
+      <div class="rv-source-grid">
+        <div class="rv-source">
+          <label for="rvFile">Carica CSV o file Excel</label>
+          <input id="rvFile" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+          <div id="rvFileName" class="rv-file-name"></div>
+        </div>
+        <div class="rv-source">
+          <label for="rvGoogleUrl">Oppure incolla il link di Fogli Google</label>
+          <input id="rvGoogleUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
+          <button id="rvGoogleLoad" class="rv-button" type="button">Importa Foglio Google</button>
+        </div>
+      </div>
+      <div id="rvStatus" role="status" aria-live="polite"></div>
+    </div>
 
-<section id="shippingPanel" class="tool-panel active">
+    <div class="rv-card">
+      <h2>Cosa vuoi analizzare?</h2>
+      <div class="rv-fields">
+        <div class="rv-field">
+          <label for="rvSearch">Mittente</label>
+          <input id="rvSearch" type="text" value="MANGOPAY" placeholder="Es. MANGOPAY">
+        </div>
+        <div class="rv-field">
+          <label for="rvFrom">Dal (gg/mm/aaaa)</label>
+          <input id="rvFrom" type="text" inputmode="numeric" maxlength="10" placeholder="gg/mm/aaaa">
+        </div>
+        <div class="rv-field">
+          <label for="rvTo">Al (gg/mm/aaaa)</label>
+          <input id="rvTo" type="text" inputmode="numeric" maxlength="10" placeholder="gg/mm/aaaa">
+        </div>
+      </div>
+      <div class="rv-actions">
+        <button id="rvRun" class="rv-button" type="button" disabled>Calcola statistiche</button>
+        <button id="rvReset" class="rv-button secondary" type="button">Azzera filtri</button>
+        <button id="rvExport" class="rv-button secondary" type="button" disabled>Esporta risultati CSV</button>
+      </div>
+    </div>
 
-<input id="files" type="file" accept="application/pdf,.pdf" multiple>
-
-<button id="pick" type="button">＋ Seleziona i PDF</button>
-
-<div id="status" role="status" aria-live="polite">
-Seleziona uno o più PDF. Puoi aggiungere etichette anche a un PDF A4 già preparato con questa versione del sito.
-</div>
-
-<section id="result" aria-live="polite">
-<div class="result-head">
-<h2>Anteprima del PDF A4</h2>
-<a id="download" href="#" download="etichette_pronte_A4.pdf">Scarica il PDF pronto</a>
-</div>
-<div id="preview"></div>
-</section>
-
-<div class="note">
-Controlla l'anteprima prima di stampare. Usa A4, dimensioni effettive / 100%.
-</div>
-
-</section>
-
-<!-- ======================================
-     SECONDO STRUMENTO: REVOLUT
-====================================== -->
-
-<section id="revolutPanel" class="tool-panel" aria-labelledby="revolutTitle">
-
-<div class="rv-card">
-<h2 id="revolutTitle">Analisi delle entrate Revolut</h2>
-
-<div class="rv-upload">
-<label for="rvFile"><strong>Carica il CSV esportato da Revolut</strong></label>
-<br><br>
-<input id="rvFile" type="file" accept=".csv,text/csv">
-<div id="rvFileName" class="rv-file-name">Nessun file selezionato</div>
-</div>
-
-<p class="rv-help">
-Il file viene letto direttamente nel browser e non viene inviato a un server.
-Sono supportate le colonne Tipo, Prodotto, Data di inizio, Data di completamento,
-Descrizione, Importo, Costo, Valuta, State e Saldo.
-</p>
-
-<div id="rvStatus" role="status" aria-live="polite">
-Carica il CSV per iniziare.
-</div>
-</div>
-
-<div class="rv-card">
-<h2>Cosa vuoi analizzare?</h2>
-
-<div class="rv-fields">
-
-<div class="rv-field">
-<label for="rvSearch">Mittente</label>
-<input id="rvSearch" type="text" value="MANGOPAY" placeholder="Es. MANGOPAY">
-</div>
-
-<div class="rv-field">
-<label for="rvCurrency">Valuta</label>
-<select id="rvCurrency" disabled>
-<option value="">Carica prima un CSV</option>
-</select>
-</div>
-
-<div class="rv-field">
-<label for="rvFrom">Dal</label>
-<input id="rvFrom" type="date">
-</div>
-
-<div class="rv-field">
-<label for="rvTo">Al</label>
-<input id="rvTo" type="date">
-</div>
-
-</div>
-
-<div class="rv-actions">
-<button id="rvRun" class="rv-button" type="button" disabled>Calcola statistiche</button>
-<button id="rvReset" class="rv-button secondary" type="button">Azzera filtri</button>
-<button id="rvExport" class="rv-button secondary" type="button" disabled>Esporta CSV</button>
-</div>
-</div>
-
-<div id="rvResults" class="hidden">
-
-<div class="rv-card">
-<h2>Riepilogo complessivo</h2>
-
-<div class="rv-grid">
-
-<div class="rv-metric">
-<span>Totale ricevuto</span>
-<strong id="rvTotal">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Numero accrediti</span>
-<strong id="rvCount">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Media per accredito</span>
-<strong id="rvAverage">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Media per mese attivo</span>
-<strong id="rvMonthlyAverage">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Accredito più alto</span>
-<strong id="rvLargest">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Commissioni associate</span>
-<strong id="rvFees">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Totale al netto dei costi</span>
-<strong id="rvNet">—</strong>
-</div>
-
-<div class="rv-metric">
-<span>Mese con più entrate</span>
-<strong id="rvBestMonth">—</strong>
-</div>
-
-</div>
-
-<p id="rvSummary" class="rv-summary-line"></p>
-</div>
-
-<div class="rv-card">
-<h2>Entrate mese per mese</h2>
-
-<div id="rvChart" class="rv-chart"></div>
-
-<div class="rv-table-wrap" style="margin-top:16px">
-<table class="rv-table">
-<thead>
-<tr>
-<th>Mese</th>
-<th class="num">N. accrediti</th>
-<th class="num">Totale ricevuto</th>
-<th class="num">Media accredito</th>
-</tr>
-</thead>
-<tbody id="rvMonthlyRows"></tbody>
-</table>
-</div>
-</div>
-
-<div class="rv-card">
-<h2>Dettaglio degli accrediti</h2>
-
-<div class="rv-table-wrap">
-<table class="rv-table">
-<thead>
-<tr>
-<th>Data</th>
-<th>Tipo</th>
-<th>Descrizione</th>
-<th class="num">Importo</th>
-<th class="num">Costo</th>
-<th>Stato</th>
-</tr>
-</thead>
-<tbody id="rvTransactions"></tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-<div class="rv-card">
-<div class="rv-warning">
-<strong>Come vengono fatti i calcoli:</strong>
-il programma cerca il testo inserito nella colonna Descrizione,
-considera gli importi positivi ed esclude i movimenti pendenti,
-falliti, rifiutati, annullati o stornati.
-La colonna Saldo non viene sommata perché rappresenta il saldo del conto,
-non un nuovo accredito.
-</div>
-
-<p class="rv-help">
-Le valute vengono analizzate separatamente: euro e dollari non vengono mai sommati insieme.
-Il mese viene ricavato dalla Data di completamento; se manca, viene usata la Data di inizio.
-</p>
-</div>
-
-</section>
+    <div id="rvResults" class="hidden">
+      <div class="rv-card">
+        <h2>Riepilogo complessivo</h2>
+        <div class="rv-grid">
+          <div class="rv-metric"><span>Totale ricevuto</span><strong id="rvTotal">—</strong></div>
+          <div class="rv-metric"><span>Numero di accrediti</span><strong id="rvCount">—</strong></div>
+          <div class="rv-metric"><span>Media per accredito</span><strong id="rvAverage">—</strong></div>
+          <div class="rv-metric"><span>Media per mese attivo</span><strong id="rvMonthlyAverage">—</strong></div>
+          <div class="rv-metric"><span>Accredito più alto</span><strong id="rvLargest">—</strong></div>
+          <div class="rv-metric"><span>Commissioni associate</span><strong id="rvFees">—</strong></div>
+          <div class="rv-metric"><span>Totale al netto dei costi</span><strong id="rvNet">—</strong></div>
+          <div class="rv-metric"><span>Mese con più entrate</span><strong id="rvBestMonth">—</strong></div>
+        </div>
+        <p id="rvSummary" class="rv-summary-line"></p>
+      </div>
+      <div class="rv-card">
+        <h2>Entrate mese per mese</h2>
+        <div id="rvChart" class="rv-chart"></div>
+        <div class="rv-table-wrap" style="margin-top:16px">
+          <table class="rv-table"><thead><tr><th>Mese</th><th>Valuta</th><th class="num">N. accrediti</th><th class="num">Totale</th><th class="num">Media</th></tr></thead><tbody id="rvMonthlyRows"></tbody></table>
+        </div>
+      </div>
+      <div class="rv-card">
+        <h2>Dettaglio degli accrediti</h2>
+        <div class="rv-table-wrap"><table class="rv-table"><thead><tr><th>Data</th><th>Tipo</th><th>Descrizione</th><th class="num">Importo</th><th class="num">Costo</th><th>Valuta</th><th>Stato</th></tr></thead><tbody id="rvTransactions"></tbody></table></div>
+      </div>
+    </div>
+  </section>
 </main>
 
-<!-- LIBRERIE PDF PER LE ETICHETTE -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-<!-- ======================================
-     JAVASCRIPT ETICHETTE SPEDIZIONI
-====================================== -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 'use strict';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const input = document.getElementById('files');
 const button = document.getElementById('pick');
@@ -328,1297 +186,1907 @@ const result = document.getElementById('result');
 const preview = document.getElementById('preview');
 const download = document.getElementById('download');
 
-const A4 = {width:595.2756,height:841.8898};
+const A4 = { width: 595.2756, height: 841.8898 };
 const HALF_W = A4.width / 2;
 const HALF_H = A4.height / 2;
 
 const LAYOUT_MARKER = 'ETICHETTE_SPEDIZIONI_LAYOUT_V5';
+
 const PREVIOUS_MARKERS = [
-'ETICHETTE_SPEDIZIONI_LAYOUT_V3',
-'ETICHETTE_SPEDIZIONI_LAYOUT_V4'
+  'ETICHETTE_SPEDIZIONI_LAYOUT_V3',
+  'ETICHETTE_SPEDIZIONI_LAYOUT_V4'
 ];
+
 const MAX_QUADRANT_SHRINK = 0.02;
 
 let currentUrl = null;
 
+// SELEZIONE DEI PDF
+
 button.addEventListener('click', () => input.click());
 
 input.addEventListener('change', async () => {
-if (!input.files || input.files.length === 0) return;
+  if (!input.files || input.files.length === 0) return;
 
-button.disabled = true;
-result.style.display = 'none';
-preview.replaceChildren();
-statusBox.textContent = 'Sto leggendo i PDF e recuperando le etichette…';
+  button.disabled = true;
+  statusBox.style.display = 'block';
+  result.style.display = 'none';
+  preview.replaceChildren();
 
-try {
-const inpost = [];
-const other = [];
-let importedInpost = 0;
-let importedOther = 0;
+  statusBox.textContent =
+    'Sto leggendo i PDF e recuperando le etichette…';
 
-for (const file of Array.from(input.files)) {
-const isPdf = file.type === 'application/pdf' ||
-file.name.toLowerCase().endsWith('.pdf');
+  try {
+    const inpost = [];
+    const other = [];
 
-if (!isPdf) continue;
+    let importedInpost = 0;
+    let importedOther = 0;
 
-const bytes = new Uint8Array(await file.arrayBuffer());
+    for (const file of Array.from(input.files)) {
+      const isPdf =
+        file.type === 'application/pdf' ||
+        file.name.toLowerCase().endsWith('.pdf');
 
-const pdfJsDoc = await pdfjsLib.getDocument({
-data: bytes.slice()
-}).promise;
+      if (!isPdf) continue;
 
-const sourceDoc = await PDFLib.PDFDocument.load(bytes);
+      const bytes = new Uint8Array(await file.arrayBuffer());
 
-const metadata = await pdfJsDoc.getMetadata().catch(() => null);
-const info = metadata?.info || {};
-const subject = String(info.Subject || info.subject || '');
+      const pdfJsDoc = await pdfjsLib.getDocument({
+        data: bytes.slice()
+      }).promise;
 
-const metaText = [
-subject,
-info.Keywords || info.keywords || '',
-info.Title || info.title || ''
-].join(' ').toUpperCase();
+      const sourceDoc = await PDFLib.PDFDocument.load(bytes);
 
-const isV5 = metaText.includes(LAYOUT_MARKER);
+      const metadata = await pdfJsDoc
+        .getMetadata()
+        .catch(() => null);
 
-const oldVersion = PREVIOUS_MARKERS.find(
-marker => metaText.includes(marker)
-);
+      const info = metadata?.info || {};
 
-if (oldVersion && !isV5) {
-throw new Error(
-`Il file "${file.name}" è stato creato con una versione precedente (${oldVersion}). Seleziona i PDF originali e ricrealo.`
-);
-}
+      const subject = String(
+        info.Subject || info.subject || ''
+      );
 
-const generatedLayout = isV5
-? parseGeneratedLayout(subject)
-: null;
+      const metaText = [
+        subject,
+        info.Keywords || info.keywords || '',
+        info.Title || info.title || ''
+      ].join(' ').toUpperCase();
 
-if (isV5 && !generatedLayout) {
-throw new Error(
-`Il PDF "${file.name}" contiene la firma V5, ma la mappa delle etichette non è leggibile.`
-);
-}
+      const isV5 = metaText.includes(LAYOUT_MARKER);
 
-if (isV5 && generatedLayout.length !== pdfJsDoc.numPages) {
-throw new Error(
-`La mappa del PDF "${file.name}" non corrisponde al numero delle pagine.`
-);
-}
+      const oldVersion = PREVIOUS_MARKERS.find(
+        marker => metaText.includes(marker)
+      );
 
-for (let pageNumber = 1; pageNumber <= pdfJsDoc.numPages; pageNumber++) {
-statusBox.textContent =
-`Analisi: ${file.name} — pagina ${pageNumber}/${pdfJsDoc.numPages}…`;
+      if (oldVersion && !isV5) {
+        throw new Error(
+          `Il file "${file.name}" è stato creato con una versione precedente (${oldVersion}). Questa versione importa solo PDF creati dalla versione 5. Per riutilizzarlo, seleziona i PDF originali e ricrealo.`
+        );
+      }
 
-const jsPage = await pdfJsDoc.getPage(pageNumber);
-const sourcePage = sourceDoc.getPages()[pageNumber - 1];
-const sourceWidth = sourcePage.getWidth();
-const sourceHeight = sourcePage.getHeight();
-const pageIndex = pageNumber - 1;
+      const generatedLayout = isV5
+        ? parseGeneratedLayout(subject)
+        : null;
 
-if (isV5) {
-if (!isA4Portrait(sourceWidth, sourceHeight)) {
-throw new Error(
-`La pagina ${pageNumber} del PDF V5 "${file.name}" non è in formato A4 verticale.`
-);
-}
+      if (isV5 && !generatedLayout) {
+        throw new Error(
+          `Il PDF "${file.name}" contiene la firma V5, ma la mappa delle etichette non è leggibile.`
+        );
+      }
 
-const layout = generatedLayout[pageIndex];
+      if (
+        isV5 &&
+        generatedLayout.length !== pdfJsDoc.numPages
+      ) {
+        throw new Error(
+          `La mappa del PDF "${file.name}" non corrisponde al numero delle pagine.`
+        );
+      }
 
-const crops = layout.mode === 'Q'
-? getQuadrantCrops(sourceWidth, sourceHeight)
-: getHalfCrops(sourceWidth, sourceHeight);
+      for (
+        let pageNumber = 1;
+        pageNumber <= pdfJsDoc.numPages;
+        pageNumber++
+      ) {
+        statusBox.textContent =
+          `Analisi: ${file.name} — pagina ${pageNumber}/${pdfJsDoc.numPages}…`;
 
-for (let slot = 0; slot < layout.slots.length; slot++) {
-const code = layout.slots[slot];
-if (code === '-') continue;
+        const jsPage = await pdfJsDoc.getPage(pageNumber);
 
-const crop = crops[slot];
+        const sourcePage = sourceDoc.getPages()[pageNumber - 1];
 
-if (code === 'I') {
-inpost.push(makeItem(
-file.name,pageNumber,sourceDoc,pageIndex,'inpost',crop
-));
-importedInpost++;
+        const sourceWidth = sourcePage.getWidth();
+        const sourceHeight = sourcePage.getHeight();
 
-} else if (code === 'O') {
-const kind = layout.mode === 'Q'
-? 'imported-quadrant'
-: 'imported-half';
+        const pageIndex = pageNumber - 1;
 
-other.push(makeItem(
-file.name,pageNumber,sourceDoc,pageIndex,kind,crop
-));
-importedOther++;
-}
-}
+        if (isV5) {
+          if (!isA4Portrait(sourceWidth, sourceHeight)) {
+            throw new Error(
+              `La pagina ${pageNumber} del PDF V5 "${file.name}" non è in formato A4 verticale.`
+            );
+          }
 
-continue;
-}
+          const layout = generatedLayout[pageIndex];
 
-const textContent = await jsPage.getTextContent();
+          const crops = layout.mode === 'Q'
+            ? getQuadrantCrops(sourceWidth, sourceHeight)
+            : getHalfCrops(sourceWidth, sourceHeight);
 
-const text = textContent.items
-.filter(item => (item.str || '').trim().length > 0)
-.map(item => item.str || '')
-.join(' ')
-.toLowerCase();
+          for (
+            let slot = 0;
+            slot < layout.slots.length;
+            slot++
+          ) {
+            const code = layout.slots[slot];
 
-const kind = classifySourcePage(text);
+            if (code === '-') continue;
 
-if (!kind) {
-throw new Error(
-`Formato non riconosciuto: ${file.name}, pagina ${pageNumber}. Sono supportati i PDF originali InPost, BRT e DPD con i modelli previsti.`
-);
-}
+            const crop = crops[slot];
 
-const crop = getSourceCrop(kind,sourceWidth,sourceHeight);
+            if (code === 'I') {
+              inpost.push(
+                makeItem(
+                  file.name,
+                  pageNumber,
+                  sourceDoc,
+                  pageIndex,
+                  'inpost',
+                  crop
+                )
+              );
 
-const item = makeItem(
-file.name,pageNumber,sourceDoc,pageIndex,kind,crop
-);
+              importedInpost++;
 
-if (kind === 'inpost') inpost.push(item);
-else other.push(item);
-}
-}
+            } else if (code === 'O') {
+              const kind = layout.mode === 'Q'
+                ? 'imported-quadrant'
+                : 'imported-half';
 
-if (inpost.length + other.length === 0) {
-throw new Error('Non ho trovato etichette nei PDF selezionati.');
-}
+              other.push(
+                makeItem(
+                  file.name,
+                  pageNumber,
+                  sourceDoc,
+                  pageIndex,
+                  kind,
+                  crop
+                )
+              );
 
-statusBox.textContent = 'Sto impaginando le etichette…';
+              importedOther++;
+            }
+          }
 
-const composed = await compose(inpost,other);
+          continue;
+        }
 
-const blob = new Blob(
-[composed.bytes],
-{type:'application/pdf'}
-);
+        const textContent = await jsPage.getTextContent();
 
-if (currentUrl) URL.revokeObjectURL(currentUrl);
+        const text = textContent.items
+          .filter(item => (item.str || '').trim().length > 0)
+          .map(item => item.str || '')
+          .join(' ')
+          .toLowerCase();
 
-currentUrl = URL.createObjectURL(blob);
-download.href = currentUrl;
-result.style.display = 'block';
+        const kind = classifySourcePage(text);
 
-await renderPreview(composed.bytes);
+        if (!kind) {
+          throw new Error(
+            `Formato non riconosciuto: ${file.name}, pagina ${pageNumber}. Sono supportati i PDF originali InPost, BRT e DPD con istruzioni dei modelli forniti, oppure PDF già creati dalla versione 5.`
+          );
+        }
 
-const importedTotal = importedInpost + importedOther;
+        const crop = getSourceCrop(
+          kind,
+          sourceWidth,
+          sourceHeight
+        );
 
-const importedMessage = importedTotal
-? ` Recuperate ${importedTotal} etichette dal PDF V5 (${importedInpost} InPost e ${importedOther} altre).`
-: '';
+        const item = makeItem(
+          file.name,
+          pageNumber,
+          sourceDoc,
+          pageIndex,
+          kind,
+          crop
+        );
 
-statusBox.textContent =
-`PDF pronto: ${inpost.length} InPost e ${other.length} altre etichette. ` +
-`${composed.otherInQuadrants} altre inserite nei quadranti. ` +
-`${composed.otherTwoUp} impaginate due per foglio. ` +
-`Totale: ${composed.layout.length} pagine A4.` +
-importedMessage;
+        if (kind === 'inpost') {
+          inpost.push(item);
+        } else {
+          other.push(item);
+        }
+      }
+    }
 
-result.scrollIntoView({behavior:'smooth',block:'start'});
+    if (inpost.length + other.length === 0) {
+      throw new Error(
+        'Non ho trovato etichette nei PDF selezionati.'
+      );
+    }
 
-} catch (error) {
-console.error(error);
-statusBox.textContent =
-error?.message || 'Errore durante la preparazione del PDF.';
-result.style.display = 'none';
+    statusBox.textContent =
+      'Sto impaginando le etichette e preparando l’anteprima…';
 
-} finally {
-button.disabled = false;
-input.value = '';
-}
+    const composed = await compose(inpost, other);
+
+    const outputBytes = composed.bytes;
+
+    const blob = new Blob(
+      [outputBytes],
+      { type: 'application/pdf' }
+    );
+
+    if (currentUrl) {
+      URL.revokeObjectURL(currentUrl);
+    }
+
+    currentUrl = URL.createObjectURL(blob);
+
+    download.href = currentUrl;
+    result.style.display = 'block';
+
+    await renderPreview(outputBytes);
+
+    const importedTotal =
+      importedInpost + importedOther;
+
+    const importedMessage = importedTotal
+      ? ` Recuperate ${importedTotal} etichette dal PDF V5 già preparato (${importedInpost} InPost e ${importedOther} altre).`
+      : '';
+
+    statusBox.textContent =
+      `PDF pronto: ${inpost.length} InPost e ${other.length} altre etichette. ` +
+      `${composed.otherInQuadrants} altre etichette inserite nei quadranti. ` +
+      `${composed.otherTwoUp} etichette non entrate nei quadranti impaginate due per foglio. ` +
+      `Totale: ${composed.layout.length} pagine A4.` +
+      importedMessage;
+
+    result.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    statusBox.textContent =
+      error?.message ||
+      'Errore durante la preparazione del PDF.';
+
+    result.style.display = 'none';
+
+  } finally {
+    button.disabled = false;
+    input.value = '';
+  }
 });
 
+
+// METADATI E IDENTIFICAZIONE DEL PDF V5
+
 function parseGeneratedLayout(subject) {
-const marker = LAYOUT_MARKER + '|';
-const position = String(subject || '').indexOf(marker);
-if (position < 0) return null;
+  const marker = LAYOUT_MARKER + '|';
 
-const encoded = String(subject).slice(position + marker.length).trim();
-if (!encoded) return null;
+  const position = String(subject || '').indexOf(marker);
 
-const records = encoded.split(';').map(v => v.trim()).filter(Boolean);
-const layouts = [];
+  if (position < 0) return null;
 
-for (const record of records) {
-const separator = record.indexOf(':');
-if (separator < 0) return null;
+  const encoded = String(subject)
+    .slice(position + marker.length)
+    .trim();
 
-const mode = record.slice(0,separator);
-const slots = record.slice(separator + 1);
+  if (!encoded) return null;
 
-if (mode === 'Q') {
-if (slots.length !== 4 || !/^[IO-]{4}$/.test(slots)) return null;
-layouts.push({mode:'Q',slots:slots.split('')});
+  const records = encoded
+    .split(';')
+    .map(value => value.trim())
+    .filter(Boolean);
 
-} else if (mode === 'H') {
-if (slots.length !== 2 || !/^[O-]{2}$/.test(slots)) return null;
-layouts.push({mode:'H',slots:slots.split('')});
+  const layouts = [];
 
-} else {
-return null;
+  for (const record of records) {
+    const separator = record.indexOf(':');
+
+    if (separator < 0) return null;
+
+    const mode = record.slice(0, separator);
+    const slots = record.slice(separator + 1);
+
+    if (mode === 'Q') {
+      if (
+        slots.length !== 4 ||
+        !/^[IO-]{4}$/.test(slots)
+      ) return null;
+
+      layouts.push({
+        mode: 'Q',
+        slots: slots.split('')
+      });
+
+    } else if (mode === 'H') {
+      if (
+        slots.length !== 2 ||
+        !/^[O-]{2}$/.test(slots)
+      ) return null;
+
+      layouts.push({
+        mode: 'H',
+        slots: slots.split('')
+      });
+
+    } else {
+      return null;
+    }
+  }
+
+  return layouts.length ? layouts : null;
 }
+
+
+function isA4Portrait(width, height) {
+  return (
+    Math.abs(width - A4.width) < 3 &&
+    Math.abs(height - A4.height) < 3
+  );
 }
 
-return layouts.length ? layouts : null;
+
+function makeItem(
+  fileName,
+  pageNumber,
+  sourceDoc,
+  pageIndex,
+  kind,
+  crop
+) {
+  return {
+    fileName,
+    pageNumber,
+    sourceDoc,
+    pageIndex,
+    kind,
+    crop
+  };
 }
 
-function isA4Portrait(width,height) {
-return Math.abs(width-A4.width)<3 &&
-Math.abs(height-A4.height)<3;
-}
 
-function makeItem(fileName,pageNumber,sourceDoc,pageIndex,kind,crop) {
-return {fileName,pageNumber,sourceDoc,pageIndex,kind,crop};
-}
+// RICONOSCIMENTO DEI PDF ORIGINALI
 
 function classifySourcePage(text) {
-const normalized = String(text || '').toLowerCase();
+  const normalized = String(text || '').toLowerCase();
 
-if (
-normalized.includes('deposito') &&
-normalized.includes('giro') &&
-normalized.includes('mittente')
-) return 'inpost';
+  if (
+    normalized.includes('deposito') &&
+    normalized.includes('giro') &&
+    normalized.includes('mittente')
+  ) {
+    return 'inpost';
+  }
 
-if (
-(
-normalized.includes("stampare l'etichetta") ||
-normalized.includes('un rapido taglio') ||
-normalized.includes('imballare tutto in modo sicuro')
-) &&
-normalized.includes('order reference')
-) return 'instructions';
+  if (
+    (
+      normalized.includes("stampare l'etichetta") ||
+      normalized.includes('un rapido taglio') ||
+      normalized.includes('imballare tutto in modo sicuro')
+    ) &&
+    normalized.includes('order reference')
+  ) {
+    return 'instructions';
+  }
 
-if (
-normalized.includes('terms & conditions of services') ||
-normalized.includes('www.dpd.com') ||
-normalized.includes('brt s.p.a.')
-) return 'brt';
+  if (
+    normalized.includes('terms & conditions of services') ||
+    normalized.includes('www.dpd.com') ||
+    normalized.includes('brt s.p.a.')
+  ) {
+    return 'brt';
+  }
 
-return null;
+  return null;
 }
 
-function getSourceCrop(kind,width,height) {
-if (kind === 'inpost') return null;
 
-if (kind === 'instructions') {
-return {
-left:width*0.143277,
-bottom:height*(1-0.956942),
-right:width*0.856723,
-top:height*(1-0.620439)
-};
+// RITAGLIO DEI PDF ORIGINALI
+
+function getSourceCrop(kind, width, height) {
+  if (kind === 'inpost') {
+    return null;
+  }
+
+  if (kind === 'instructions') {
+    return {
+      left: width * 0.143277,
+      bottom: height * (1 - 0.956942),
+      right: width * 0.856723,
+      top: height * (1 - 0.620439)
+    };
+  }
+
+  if (kind === 'brt') {
+    return {
+      left: width * 0.075427,
+      bottom: height * (1 - 0.625973),
+      right: width * 0.542102,
+      top: height * (1 - 0.175082)
+    };
+  }
+
+  throw new Error('Tipo di etichetta non gestito.');
 }
 
-if (kind === 'brt') {
-return {
-left:width*0.075427,
-bottom:height*(1-0.625973),
-right:width*0.542102,
-top:height*(1-0.175082)
-};
+
+// RITAGLI DEI PDF GIÀ PREPARATI
+
+function getQuadrantCrops(width, height) {
+  const hw = width / 2;
+  const hh = height / 2;
+
+  return [
+    {left:0,bottom:hh,right:hw,top:height},
+    {left:hw,bottom:hh,right:width,top:height},
+    {left:0,bottom:0,right:hw,top:hh},
+    {left:hw,bottom:0,right:width,top:hh}
+  ];
 }
 
-throw new Error('Tipo di etichetta non gestito.');
+function getHalfCrops(width, height) {
+  const hh = height / 2;
+
+  return [
+    {left:0,bottom:hh,right:width,top:height},
+    {left:0,bottom:0,right:width,top:hh}
+  ];
 }
 
-function getQuadrantCrops(width,height) {
-const hw = width/2;
-const hh = height/2;
 
-return [
-{left:0,bottom:hh,right:hw,top:height},
-{left:hw,bottom:hh,right:width,top:height},
-{left:0,bottom:0,right:hw,top:hh},
-{left:hw,bottom:0,right:width,top:hh}
-];
+// INCORPORAMENTO PDF CON RITAGLIO
+
+async function embedLabel(out, item) {
+  const sourcePage =
+    item.sourceDoc.getPages()[item.pageIndex];
+
+  return await out.embedPage(
+    sourcePage,
+    item.crop || undefined
+  );
 }
 
-function getHalfCrops(width,height) {
-const hh = height/2;
 
-return [
-{left:0,bottom:hh,right:width,top:height},
-{left:0,bottom:0,right:width,top:hh}
-];
-}
-
-async function embedLabel(out,item) {
-const sourcePage = item.sourceDoc.getPages()[item.pageIndex];
-return await out.embedPage(sourcePage,item.crop || undefined);
-}
+// POSIZIONAMENTO
 
 function quadrantBox(slot) {
-const col = slot%2;
-const row = Math.floor(slot/2);
+  const col = slot % 2;
+  const row = Math.floor(slot / 2);
 
-return {
-x:col*HALF_W,
-y:row===0?HALF_H:0,
-width:HALF_W,
-height:HALF_H
-};
+  return {
+    x: col * HALF_W,
+    y: row === 0 ? HALF_H : 0,
+    width: HALF_W,
+    height: HALF_H
+  };
 }
 
 function halfBox(slot) {
-return {
-x:0,
-y:slot===0?HALF_H:0,
-width:A4.width,
-height:HALF_H
-};
+  return {
+    x: 0,
+    y: slot === 0 ? HALF_H : 0,
+    width: A4.width,
+    height: HALF_H
+  };
 }
 
-function fitInBox(embedded,box,options={}) {
-const allowRotate = options.allowRotate ?? true;
-const maxShrink = options.maxShrink ?? 0;
+function fitInBox(embedded, box, options = {}) {
+  const allowRotate = options.allowRotate ?? true;
+  const maxShrink = options.maxShrink ?? 0;
 
-const choices = [
-{rotation:0,width:embedded.width,height:embedded.height}
-];
+  const choices = [
+    {
+      rotation: 0,
+      width: embedded.width,
+      height: embedded.height
+    }
+  ];
 
-if (allowRotate) {
-choices.push({
-rotation:90,
-width:embedded.height,
-height:embedded.width
-});
+  if (allowRotate) {
+    choices.push({
+      rotation: 90,
+      width: embedded.height,
+      height: embedded.width
+    });
+  }
+
+  let best = null;
+
+  for (const choice of choices) {
+    const scale = Math.min(
+      1,
+      box.width / choice.width,
+      box.height / choice.height
+    );
+
+    if (scale < 1 - maxShrink - 0.000001) {
+      continue;
+    }
+
+    if (!best || scale > best.scale) {
+      best = {
+        rotation: choice.rotation,
+        scale,
+        width: choice.width * scale,
+        height: choice.height * scale
+      };
+    }
+  }
+
+  return best;
 }
 
-let best = null;
+function drawFitted(page, embedded, box, fit) {
+  const left =
+    box.x + (box.width - fit.width) / 2;
 
-for (const choice of choices) {
-const scale = Math.min(
-1,
-box.width/choice.width,
-box.height/choice.height
-);
+  const bottom =
+    box.y + (box.height - fit.height) / 2;
 
-if (scale < 1-maxShrink-0.000001) continue;
+  const drawWidth =
+    embedded.width * fit.scale;
 
-if (!best || scale>best.scale) {
-best = {
-rotation:choice.rotation,
-scale,
-width:choice.width*scale,
-height:choice.height*scale
-};
-}
-}
+  const drawHeight =
+    embedded.height * fit.scale;
 
-return best;
-}
+  if (fit.rotation === 0) {
+    page.drawPage(embedded, {
+      x: left,
+      y: bottom,
+      width: drawWidth,
+      height: drawHeight
+    });
 
-function drawFitted(page,embedded,box,fit) {
-const left = box.x+(box.width-fit.width)/2;
-const bottom = box.y+(box.height-fit.height)/2;
-
-const drawWidth = embedded.width*fit.scale;
-const drawHeight = embedded.height*fit.scale;
-
-if (fit.rotation === 0) {
-page.drawPage(embedded,{
-x:left,y:bottom,width:drawWidth,height:drawHeight
-});
-} else {
-page.drawPage(embedded,{
-x:left+fit.width,y:bottom,
-width:drawWidth,height:drawHeight,
-rotate:PDFLib.degrees(90)
-});
-}
+  } else {
+    page.drawPage(embedded, {
+      x: left + fit.width,
+      y: bottom,
+      width: drawWidth,
+      height: drawHeight,
+      rotate: PDFLib.degrees(90)
+    });
+  }
 }
 
-async function compose(inpostLabels,otherLabels) {
-const out = await PDFLib.PDFDocument.create();
-out.setTitle('Etichette spedizioni - impaginato A4');
 
-const preparedInpost = [];
-const preparedOther = [];
+// COMPOSIZIONE DEL PDF V5
 
-for (const item of inpostLabels) {
-preparedInpost.push({
-item,
-embedded:await embedLabel(out,item),
-kind:'I',
-fit:null
-});
+async function compose(inpostLabels, otherLabels) {
+  const out = await PDFLib.PDFDocument.create();
+
+  out.setTitle('Etichette spedizioni - impaginato A4');
+
+  const preparedInpost = [];
+  const preparedOther = [];
+
+  for (const item of inpostLabels) {
+    preparedInpost.push({
+      item,
+      embedded: await embedLabel(out, item),
+      kind: 'I',
+      fit: null
+    });
+  }
+
+  for (const item of otherLabels) {
+    preparedOther.push({
+      item,
+      embedded: await embedLabel(out, item),
+      kind: 'O',
+      fit: null
+    });
+  }
+
+  const pagePlans = [];
+
+  // INPOST: QUATTRO PER FOGLIO
+
+  for (
+    let start = 0;
+    start < preparedInpost.length;
+    start += 4
+  ) {
+    const slots = [null,null,null,null];
+
+    preparedInpost
+      .slice(start, start + 4)
+      .forEach((entry, index) => {
+        slots[index] = entry;
+      });
+
+    pagePlans.push({
+      mode: 'Q',
+      slots
+    });
+  }
+
+  // DIVIDE LE ALTRE ETICHETTE
+
+  const quadrantEligible = [];
+  const twoUpOnly = [];
+
+  const standardQuadrant = quadrantBox(0);
+
+  for (const entry of preparedOther) {
+    const fit = fitInBox(
+      entry.embedded,
+      standardQuadrant,
+      {
+        allowRotate: true,
+        maxShrink: MAX_QUADRANT_SHRINK
+      }
+    );
+
+    if (fit) {
+      entry.fit = fit;
+      quadrantEligible.push(entry);
+    } else {
+      twoUpOnly.push(entry);
+    }
+  }
+
+  // RIEMPIE I QUADRANTI VUOTI NELL'ULTIMA PAGINA INPOST
+
+  let nextEligible = 0;
+  let otherInQuadrants = 0;
+
+  if (
+    pagePlans.length > 0 &&
+    quadrantEligible.length > 0
+  ) {
+    const lastInpostPage =
+      pagePlans[pagePlans.length - 1];
+
+    for (let slot = 0; slot < 4; slot++) {
+      if (lastInpostPage.slots[slot]) continue;
+      if (nextEligible >= quadrantEligible.length) break;
+
+      lastInpostPage.slots[slot] =
+        quadrantEligible[nextEligible++];
+
+      otherInQuadrants++;
+    }
+  }
+
+  // LE ALTRE IDONEE: QUATTRO PER FOGLIO
+
+  while (nextEligible < quadrantEligible.length) {
+    const slots = [null,null,null,null];
+
+    for (
+      let slot = 0;
+      slot < 4 &&
+      nextEligible < quadrantEligible.length;
+      slot++
+    ) {
+      slots[slot] = quadrantEligible[nextEligible++];
+      otherInQuadrants++;
+    }
+
+    pagePlans.push({
+      mode: 'Q',
+      slots
+    });
+  }
+
+  // ETICHETTE TROPPO GRANDI: DUE PER FOGLIO A4
+
+  for (
+    let start = 0;
+    start < twoUpOnly.length;
+    start += 2
+  ) {
+    const slots = [null,null];
+
+    twoUpOnly
+      .slice(start, start + 2)
+      .forEach((entry, index) => {
+        slots[index] = entry;
+      });
+
+    pagePlans.push({
+      mode: 'H',
+      slots
+    });
+  }
+
+  // DISEGNA LE PAGINE E CREA LA MAPPA
+
+  const layoutCodes = [];
+
+  for (const plan of pagePlans) {
+    const page = out.addPage([
+      A4.width,
+      A4.height
+    ]);
+
+    if (plan.mode === 'Q') {
+      const code = plan.slots
+        .map(entry => entry ? entry.kind : '-')
+        .join('');
+
+      layoutCodes.push(`Q:${code}`);
+
+      for (let slot = 0; slot < 4; slot++) {
+        const entry = plan.slots[slot];
+        if (!entry) continue;
+
+        const box = quadrantBox(slot);
+        let fit;
+
+        if (entry.kind === 'I') {
+          fit = fitInBox(entry.embedded,box,{
+            allowRotate:false,
+            maxShrink:MAX_QUADRANT_SHRINK
+          });
+
+        } else {
+          fit = entry.fit || fitInBox(entry.embedded,box,{
+            allowRotate:true,
+            maxShrink:MAX_QUADRANT_SHRINK
+          });
+        }
+
+        if (!fit) {
+          throw new Error(
+            `L'etichetta ${entry.item.fileName}, pagina ${entry.item.pageNumber}, non entra nel quadrante con una riduzione massima del 2%.`
+          );
+        }
+
+        drawFitted(page,entry.embedded,box,fit);
+      }
+
+    } else {
+      const code = plan.slots
+        .map(entry => entry ? 'O' : '-')
+        .join('');
+
+      layoutCodes.push(`H:${code}`);
+
+      for (let slot = 0; slot < 2; slot++) {
+        const entry = plan.slots[slot];
+        if (!entry) continue;
+
+        const box = halfBox(slot);
+
+        const fit = fitInBox(entry.embedded,box,{
+          allowRotate:false,
+          maxShrink:0
+        });
+
+        if (!fit) {
+          throw new Error(
+            `L'etichetta ${entry.item.fileName}, pagina ${entry.item.pageNumber}, non entra neanche nella metà A4 senza ridimensionamento.`
+          );
+        }
+
+        drawFitted(page,entry.embedded,box,fit);
+      }
+    }
+  }
+
+  const metadataMap =
+    `${LAYOUT_MARKER}|${layoutCodes.join(';')}`;
+
+  out.setSubject(metadataMap);
+
+  out.setKeywords([
+    LAYOUT_MARKER,
+    'etichette',
+    'spedizioni',
+    `pages:${layoutCodes.length}`
+  ]);
+
+  return {
+    bytes: await out.save(),
+    layout: pagePlans,
+    otherInQuadrants,
+    otherTwoUp: twoUpOnly.length
+  };
 }
 
-for (const item of otherLabels) {
-preparedOther.push({
-item,
-embedded:await embedLabel(out,item),
-kind:'O',
-fit:null
-});
-}
 
-const pagePlans = [];
-
-for (let start=0;start<preparedInpost.length;start+=4) {
-const slots = [null,null,null,null];
-
-preparedInpost.slice(start,start+4).forEach((entry,index) => {
-slots[index] = entry;
-});
-
-pagePlans.push({mode:'Q',slots});
-}
-
-const quadrantEligible = [];
-const twoUpOnly = [];
-const standardQuadrant = quadrantBox(0);
-
-for (const entry of preparedOther) {
-const fit = fitInBox(entry.embedded,standardQuadrant,{
-allowRotate:true,
-maxShrink:MAX_QUADRANT_SHRINK
-});
-
-if (fit) {
-entry.fit = fit;
-quadrantEligible.push(entry);
-} else {
-twoUpOnly.push(entry);
-}
-}
-
-let nextEligible = 0;
-let otherInQuadrants = 0;
-
-if (pagePlans.length>0 && quadrantEligible.length>0) {
-const lastInpostPage = pagePlans[pagePlans.length-1];
-
-for (let slot=0;slot<4;slot++) {
-if (lastInpostPage.slots[slot]) continue;
-if (nextEligible>=quadrantEligible.length) break;
-
-lastInpostPage.slots[slot] = quadrantEligible[nextEligible++];
-otherInQuadrants++;
-}
-}
-
-while (nextEligible<quadrantEligible.length) {
-const slots = [null,null,null,null];
-
-for (
-let slot=0;
-slot<4 && nextEligible<quadrantEligible.length;
-slot++
-) {
-slots[slot] = quadrantEligible[nextEligible++];
-otherInQuadrants++;
-}
-
-pagePlans.push({mode:'Q',slots});
-}
-
-for (let start=0;start<twoUpOnly.length;start+=2) {
-const slots = [null,null];
-
-twoUpOnly.slice(start,start+2).forEach((entry,index) => {
-slots[index] = entry;
-});
-
-pagePlans.push({mode:'H',slots});
-}
-
-const layoutCodes = [];
-
-for (const plan of pagePlans) {
-const page = out.addPage([A4.width,A4.height]);
-
-if (plan.mode === 'Q') {
-const code = plan.slots.map(entry=>entry?entry.kind:'-').join('');
-layoutCodes.push(`Q:${code}`);
-
-for (let slot=0;slot<4;slot++) {
-const entry = plan.slots[slot];
-if (!entry) continue;
-
-const box = quadrantBox(slot);
-
-let fit;
-
-if (entry.kind === 'I') {
-fit = fitInBox(entry.embedded,box,{
-allowRotate:false,
-maxShrink:MAX_QUADRANT_SHRINK
-});
-} else {
-fit = entry.fit || fitInBox(entry.embedded,box,{
-allowRotate:true,
-maxShrink:MAX_QUADRANT_SHRINK
-});
-}
-
-if (!fit) {
-throw new Error(
-`L'etichetta ${entry.item.fileName}, pagina ${entry.item.pageNumber}, non entra nel quadrante con una riduzione massima del 2%.`
-);
-}
-
-drawFitted(page,entry.embedded,box,fit);
-}
-
-} else {
-const code = plan.slots.map(entry=>entry?'O':'-').join('');
-layoutCodes.push(`H:${code}`);
-
-for (let slot=0;slot<2;slot++) {
-const entry = plan.slots[slot];
-if (!entry) continue;
-
-const box = halfBox(slot);
-
-const fit = fitInBox(entry.embedded,box,{
-allowRotate:false,
-maxShrink:0
-});
-
-if (!fit) {
-throw new Error(
-`L'etichetta ${entry.item.fileName}, pagina ${entry.item.pageNumber}, non entra nella metà A4 senza ridimensionamento.`
-);
-}
-
-drawFitted(page,entry.embedded,box,fit);
-}
-}
-}
-
-const metadataMap = `${LAYOUT_MARKER}|${layoutCodes.join(';')}`;
-out.setSubject(metadataMap);
-out.setKeywords([
-LAYOUT_MARKER,
-'etichette',
-'spedizioni',
-`pages:${layoutCodes.length}`
-]);
-
-return {
-bytes:await out.save(),
-layout:pagePlans,
-otherInQuadrants,
-otherTwoUp:twoUpOnly.length
-};
-}
+// ANTEPRIMA DEL PDF
 
 async function renderPreview(pdfBytes) {
-preview.replaceChildren();
+  preview.replaceChildren();
 
-const pdf = await pdfjsLib.getDocument({
-data:pdfBytes.slice()
-}).promise;
+  const pdf = await pdfjsLib.getDocument({
+    data: pdfBytes.slice()
+  }).promise;
 
-for (let pageNo=1;pageNo<=pdf.numPages;pageNo++) {
-const page = await pdf.getPage(pageNo);
+  for (
+    let pageNo = 1;
+    pageNo <= pdf.numPages;
+    pageNo++
+  ) {
+    const page = await pdf.getPage(pageNo);
 
-const host = document.createElement('article');
-host.className = 'preview-page';
+    const host = document.createElement('article');
+    host.className = 'preview-page';
 
-const title = document.createElement('p');
-title.className = 'page-name';
-title.textContent = `Foglio A4 ${pageNo} di ${pdf.numPages}`;
+    const title = document.createElement('p');
+    title.className = 'page-name';
+    title.textContent =
+      `Foglio A4 ${pageNo} di ${pdf.numPages}`;
 
-const canvas = document.createElement('canvas');
+    const canvas = document.createElement('canvas');
 
-const base = page.getViewport({scale:1});
-const scale = Math.min(1.35,660/base.width);
-const viewport = page.getViewport({scale});
+    const base = page.getViewport({scale:1});
 
-canvas.width = Math.ceil(viewport.width);
-canvas.height = Math.ceil(viewport.height);
+    const scale = Math.min(
+      1.35,
+      660 / base.width
+    );
 
-const context = canvas.getContext('2d');
+    const viewport = page.getViewport({scale});
 
-if (!context) {
-throw new Error('Impossibile generare l’anteprima nel browser.');
-}
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
 
-host.append(title,canvas);
-preview.append(host);
+    const context = canvas.getContext('2d');
 
-await page.render({
-canvasContext:context,
-viewport
-}).promise;
-}
+    if (!context) {
+      throw new Error(
+        'Impossibile generare l’anteprima nel browser.'
+      );
+    }
+
+    host.append(title, canvas);
+    preview.append(host);
+
+    await page.render({
+      canvasContext: context,
+      viewport
+    }).promise;
+  }
 }
 </script>
-
-<!-- ======================================
-     NAVIGAZIONE E ANALISI REVOLUT
-====================================== -->
 
 <script>
 'use strict';
 
+/* Navigazione tra strumenti */
+
 document.querySelectorAll('.site-tab').forEach(tab => {
-tab.addEventListener('click',() => {
-document.querySelectorAll('.site-tab').forEach(t => {
-const active = t === tab;
-t.classList.toggle('active',active);
-t.setAttribute('aria-selected',String(active));
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.site-tab').forEach(item => {
+      const active = item === tab;
+      item.classList.toggle('active', active);
+      item.setAttribute('aria-selected', String(active));
+    });
+
+    document.querySelectorAll('.tool-panel').forEach(panel => {
+      panel.classList.toggle('active', panel.id === tab.dataset.panel);
+    });
+  });
 });
 
-document.querySelectorAll('.tool-panel').forEach(panel => {
-panel.classList.toggle('active',panel.id === tab.dataset.panel);
-});
-});
-});
+
+/* ANALISI REVOLUT */
 
 (() => {
 
-const $ = id => document.getElementById(id);
-const state = {rows:[],result:[],currency:'EUR'};
-
-const normalize = value => String(value ?? '')
-.normalize('NFD')
-.replace(/[\u0300-\u036f]/g,'')
-.toLowerCase()
-.replace(/\s+/g,' ')
-.trim();
-
-function detectDelimiter(line) {
-const candidates = [',',';','\t'];
-let best = ',';
-let bestCount = -1;
-
-for (const delim of candidates) {
-let count = 0;
-let quoted = false;
-
-for (let i=0;i<line.length;i++) {
-if (line[i] === '"') {
-if (quoted && line[i+1] === '"') i++;
-else quoted = !quoted;
-} else if (line[i] === delim && !quoted) {
-count++;
-}
-}
-
-if (count>bestCount) {
-best = delim;
-bestCount = count;
-}
-}
-
-return best;
-}
-
-function parseDelimited(text,delimiter) {
-const records = [];
-let row = [];
-let cell = '';
-let quoted = false;
-
-for (let i=0;i<text.length;i++) {
-const ch = text[i];
-
-if (ch === '"') {
-if (quoted && text[i+1] === '"') {
-cell += '"';
-i++;
-} else {
-quoted = !quoted;
-}
-
-} else if (ch === delimiter && !quoted) {
-row.push(cell);
-cell = '';
-
-} else if ((ch === '\n' || ch === '\r') && !quoted) {
-if (ch === '\r' && text[i+1] === '\n') i++;
-
-row.push(cell);
-cell = '';
-
-if (row.some(v=>String(v).trim() !== '')) records.push(row);
-row = [];
-
-} else {
-cell += ch;
-}
-}
-
-row.push(cell);
-if (row.some(v=>String(v).trim() !== '')) records.push(row);
-
-return records;
-}
-
-function parseAmount(value) {
-let s = String(value ?? '').trim();
-if (!s) return null;
-
-const negative =
-/^\s*\(.*\)\s*$/.test(s) ||
-/(^|\s)[−-]\s*\d/.test(s);
-
-s = s.replace(/[€$£\s\u00a0'’()]/g,'')
-.replace(/[−]/g,'-')
-.replace(/[^0-9,.-]/g,'');
-
-if (!s || !/\d/.test(s)) return null;
-
-const comma = s.lastIndexOf(',');
-const dot = s.lastIndexOf('.');
-
-if (comma>=0 && dot>=0) {
-const decimal = comma>dot ? ',' : '.';
-const thousands = decimal===',' ? /\./g : /,/g;
-
-s = s.replace(thousands,'');
-
-if (decimal===',') s = s.replace(',','.');
-else s = s.replace(/,/g,'');
-
-} else if (comma>=0 || dot>=0) {
-const sep = comma>=0 ? ',' : '.';
-const parts = s.split(sep);
-
-if (parts.length>2) {
-const last = parts.pop();
-s = parts.join('')+(last.length<=2?'.'+last:last);
-} else {
-const decimals = parts[1]?.length ?? 0;
-
-if (decimals===1 || decimals===2) {
-s = parts[0]+'.'+parts[1];
-} else {
-s = parts.join('');
-}
-}
-}
-
-let n = Number(s);
-
-if (!Number.isFinite(n)) return null;
-
-if (negative) n = -Math.abs(n);
-
-return n;
-}
-
-function parseDate(value) {
-const s = String(value ?? '').trim();
-if (!s) return null;
-
-let m = s.match(
-/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/
-);
-
-if (m) {
-return validDate(
-+m[1],+m[2],+m[3],
-+(m[4]||0),+(m[5]||0),+(m[6]||0)
-);
-}
-
-m = s.match(
-/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
-);
-
-if (m) {
-let year = +m[3];
-if (year<100) year += year<70?2000:1900;
-
-return validDate(
-year,+m[2],+m[1],
-+(m[4]||0),+(m[5]||0),+(m[6]||0)
-);
-}
-
-const d = new Date(s);
-return Number.isNaN(d.getTime())?null:d;
-}
-
-function validDate(y,m,d,h,min,sec) {
-const date = new Date(y,m-1,d,h,min,sec);
-
-return date.getFullYear()===y &&
-date.getMonth()===m-1 &&
-date.getDate()===d
-? date : null;
-}
-
-function money(n,currency) {
-try {
-return new Intl.NumberFormat('it-IT',{
-style:'currency',
-currency
-}).format(n);
-} catch {
-return new Intl.NumberFormat('it-IT',{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-}).format(n)+' '+currency;
-}
-}
-
-function monthKey(date) {
-return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0');
-}
-
-function monthLabel(key) {
-const [y,m] = key.split('-').map(Number);
-
-return new Intl.DateTimeFormat('it-IT',{
-month:'long',
-year:'numeric'
-}).format(new Date(y,m-1,1));
-}
-
-function isRejectedState(value) {
-const s = normalize(value);
-
-return /pending|in sospeso|failed|fallit|declined|rifiutat|cancel|annullat|reverted|reversal|stornat|rejected|expired/.test(s);
-}
-
-function mapHeader(headers) {
-const normalized = headers.map(normalize);
-
-const aliases = {
-type:['tipo','type'],
-product:['prodotto','product'],
-startDate:['data di inizio','started date','start date','data inizio'],
-completedDate:['data di completamento','completed date','completion date','data completamento'],
-description:['descrizione','description'],
-amount:['importo','amount'],
-cost:['costo','fee','cost'],
-currency:['valuta','currency'],
-status:['state','stato'],
-balance:['saldo','balance']
-};
-
-const result = {};
-
-for (const [key,names] of Object.entries(aliases)) {
-result[key] = normalized.findIndex(h=>names.includes(h));
-}
-
-const missing = ['description','amount','currency'].filter(k=>result[k]<0);
-
-if (result.completedDate<0 && result.startDate<0) {
-missing.push('data di completamento / data di inizio');
-}
-
-if (missing.length) {
-throw new Error(
-'Nel CSV non trovo queste colonne necessarie: '+
-missing.join(', ')+
-'. Controlla che sia il CSV delle transazioni Revolut.'
-);
-}
-
-return result;
-}
-
-function readTransactions(text) {
-text = text.replace(/^\uFEFF/,'');
-
-const lines = text.split(/\r?\n/);
-
-const headerIndex = lines.findIndex(line => {
-const n = normalize(line);
-
-return n.includes('descrizione') &&
-n.includes('importo') &&
-(n.includes('valuta') || n.includes('currency'));
-});
-
-if (headerIndex<0) {
-throw new Error(
-'Non riesco a individuare le intestazioni Descrizione, Importo e Valuta.'
-);
-}
-
-const csv = lines.slice(headerIndex).join('\n');
-const delimiter = detectDelimiter(lines[headerIndex]);
-const records = parseDelimited(csv,delimiter);
-
-if (records.length<2) {
-throw new Error('Il CSV contiene le intestazioni ma non trovo transazioni.');
-}
+  const $ = id => document.getElementById(id);
+  const state = { rows: [], results: [] };
+
+  const normalize = value => String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  function showStatus(message) {
+    $('rvStatus').style.display = 'block';
+    $('rvStatus').textContent = message;
+  }
 
-const headers = records[0].map(h=>
-String(h).replace(/^\uFEFF/,'').trim()
-);
+  function parseDelimited(text, delimiter) {
+    const rows = [];
+    let row = [];
+    let cell = '';
+    let quoted = false;
 
-const col = mapHeader(headers);
-const out = [];
-
-for (const values of records.slice(1)) {
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
 
-const get = key => col[key]>=0
-? (values[col[key]] ?? '').trim()
-: '';
+      if (ch === '"') {
+        if (quoted && text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else {
+          quoted = !quoted;
+        }
 
-const date =
-parseDate(get('completedDate')) ||
-parseDate(get('startDate'));
+      } else if (ch === delimiter && !quoted) {
+        row.push(cell);
+        cell = '';
 
-const amount = parseAmount(get('amount'));
+      } else if ((ch === '\n' || ch === '\r') && !quoted) {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
 
-if (!date || amount===null) continue;
+        row.push(cell);
+        cell = '';
 
-out.push({
-date,
-amount,
-cost:parseAmount(get('cost')) ?? 0,
-currency:get('currency').toUpperCase() || 'N/D',
-description:get('description'),
-type:get('type'),
-product:get('product'),
-status:get('status'),
-balance:get('balance')
-});
-}
+        if (row.some(v => String(v).trim() !== '')) {
+          rows.push(row);
+        }
 
-if (!out.length) {
-throw new Error(
-'Ho letto il CSV, ma non sono riuscito a riconoscere righe con data e importo.'
-);
-}
-
-return out;
-}
+        row = [];
 
-function updateCurrencyOptions() {
-const select = $('rvCurrency');
+      } else {
+        cell += ch;
+      }
+    }
 
-const currencies = [
-...new Set(state.rows.map(r=>r.currency))
-].sort();
+    row.push(cell);
 
-select.replaceChildren();
+    if (row.some(v => String(v).trim() !== '')) {
+      rows.push(row);
+    }
 
-for (const c of currencies) {
-const option = document.createElement('option');
-option.value = c;
-option.textContent = c;
-select.append(option);
-}
+    return rows;
+  }
 
-select.value = currencies.includes('EUR')
-? 'EUR'
-: (currencies[0] || '');
 
-select.disabled = currencies.length<=1;
-}
+  function detectDelimiter(line) {
+    let best = ',';
+    let bestCount = -1;
 
-$('rvFile').addEventListener('change',async event => {
+    for (const delimiter of [',', ';', '\t']) {
+      let count = 0;
+      let quoted = false;
 
-const file = event.target.files?.[0];
-if (!file) return;
+      for (let i = 0; i < line.length; i++) {
+        if (line[i] === '"') {
+          if (quoted && line[i + 1] === '"') i++;
+          else quoted = !quoted;
 
-$('rvFileName').textContent = file.name;
-$('rvStatus').textContent = 'Lettura e analisi del CSV…';
+        } else if (line[i] === delimiter && !quoted) {
+          count++;
+        }
+      }
+
+      if (count > bestCount) {
+        best = delimiter;
+        bestCount = count;
+      }
+    }
+
+    return best;
+  }
+
+
+  function parseAmount(value) {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+
+    let s = String(value ?? '').trim();
+    if (!s) return null;
+
+    const negative =
+      /^\s*\(.*\)\s*$/.test(s) ||
+      /(^|\s)[−-]\s*\d/.test(s);
+
+    s = s
+      .replace(/[€$£\s\u00a0'’()]/g, '')
+      .replace(/[−]/g, '-')
+      .replace(/[^0-9,.-]/g, '');
+
+    if (!s || !/\d/.test(s)) return null;
+
+    const comma = s.lastIndexOf(',');
+    const dot = s.lastIndexOf('.');
+
+    if (comma >= 0 && dot >= 0) {
+      const decimal = comma > dot ? ',' : '.';
+
+      s = s.replace(
+        decimal === ',' ? /\./g : /,/g,
+        ''
+      );
+
+      s = decimal === ','
+        ? s.replace(',', '.')
+        : s.replace(/,/g, '');
+
+    } else if (comma >= 0 || dot >= 0) {
+      const sep = comma >= 0 ? ',' : '.';
+      const parts = s.split(sep);
+
+      if (parts.length > 2) {
+        const last = parts.pop();
+
+        s = parts.join('') +
+          (last.length <= 2 ? '.' + last : last);
+
+      } else {
+        const decimals = parts[1]?.length ?? 0;
+
+        s = decimals === 1 || decimals === 2
+          ? parts[0] + '.' + parts[1]
+          : parts.join('');
+      }
+    }
+
+    const number = Number(s);
+
+    return Number.isFinite(number)
+      ? (negative ? -Math.abs(number) : number)
+      : null;
+  }
+
+
+  function validDate(y, m, d, h = 0, min = 0, sec = 0) {
+    const date = new Date(y, m - 1, d, h, min, sec);
+
+    return date.getFullYear() === y &&
+      date.getMonth() === m - 1 &&
+      date.getDate() === d
+      ? date
+      : null;
+  }
+
+
+  function parseDate(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return new Date(
+        value.getFullYear(),
+        value.getMonth(),
+        value.getDate(),
+        value.getHours(),
+        value.getMinutes(),
+        value.getSeconds()
+      );
+    }
+
+    if (
+      typeof value === 'number' &&
+      window.XLSX &&
+      value > 15000 &&
+      value < 90000
+    ) {
+      const parts = XLSX.SSF.parse_date_code(value);
+
+      return parts
+        ? validDate(
+            parts.y,parts.m,parts.d,
+            parts.H,parts.M,Math.floor(parts.S)
+          )
+        : null;
+    }
+
+    const s = String(value ?? '').trim();
+    if (!s) return null;
+
+    let m = s.match(
+      /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/
+    );
+
+    if (m) {
+      return validDate(
+        +m[1],+m[2],+m[3],
+        +(m[4] || 0),+(m[5] || 0),+(m[6] || 0)
+      );
+    }
+
+    m = s.match(
+      /^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/
+    );
+
+    if (m) {
+      let year = +m[3];
+
+      if (year < 100) {
+        year += year < 70 ? 2000 : 1900;
+      }
+
+      return validDate(
+        year,+m[2],+m[1],
+        +(m[4] || 0),+(m[5] || 0),+(m[6] || 0)
+      );
+    }
+
+    return null;
+  }
+
+
+  function findHeaderRow(rows) {
+    return rows.findIndex(row => {
+      const cells = row.map(normalize);
+
+      return cells.some(v =>
+        ['descrizione','description'].includes(v)
+      ) && cells.some(v =>
+        ['importo','amount'].includes(v)
+      );
+    });
+  }
+
+
+  function mapHeaders(headers) {
+    const normalized = headers.map(normalize);
+
+    const aliases = {
+      type: ['tipo','type'],
+      product: ['prodotto','product'],
+
+      startDate: [
+        'data di inizio',
+        'started date',
+        'start date',
+        'data inizio'
+      ],
+
+      completedDate: [
+        'data di completamento',
+        'completed date',
+        'completion date',
+        'data completamento'
+      ],
+
+      description: ['descrizione','description'],
+      amount: ['importo','amount'],
+      cost: ['costo','fee','cost'],
+      currency: ['valuta','currency'],
+      status: ['state','stato'],
+      balance: ['saldo','balance']
+    };
+
+    const out = {};
+
+    for (const [key,names] of Object.entries(aliases)) {
+      out[key] = normalized.findIndex(v => names.includes(v));
+    }
+
+    const missing = ['description','amount'].filter(k => out[k] < 0);
+
+    if (out.completedDate < 0 && out.startDate < 0) {
+      missing.push('data di completamento / data di inizio');
+    }
+
+    if (missing.length) {
+      throw new Error('Colonne mancanti: ' + missing.join(', ') + '.');
+    }
+
+    return out;
+  }
+
+
+  function rowsToTransactions(rows) {
+    const headerIndex = findHeaderRow(rows);
+
+    if (headerIndex < 0) {
+      throw new Error('Non trovo le intestazioni Descrizione e Importo nel foglio.');
+    }
+
+    const headers = rows[headerIndex].map(v => String(v ?? '').trim());
+    const col = mapHeaders(headers);
+    const output = [];
+
+    for (const values of rows.slice(headerIndex + 1)) {
+      const get = key => col[key] >= 0 ? values[col[key]] : '';
+
+      const date =
+        parseDate(get('completedDate')) ||
+        parseDate(get('startDate'));
+
+      const amount = parseAmount(get('amount'));
+
+      if (!date || amount === null) continue;
+
+      output.push({
+        date,
+        amount,
+        cost: parseAmount(get('cost')) ?? 0,
+        currency: String(get('currency') || 'EUR').trim().toUpperCase(),
+        description: String(get('description') ?? '').trim(),
+        type: String(get('type') ?? '').trim(),
+        product: String(get('product') ?? '').trim(),
+        status: String(get('status') ?? '').trim()
+      });
+    }
+
+    if (!output.length) {
+      throw new Error('Non ho trovato movimenti con data e importo validi.');
+    }
+
+    return output;
+  }
+
+
+  function csvToTransactions(text) {
+    text = text.replace(/^\uFEFF/, '');
+
+    const lines = text.split(/\r?\n/);
+
+    const headerLine = lines.find(line =>
+      normalize(line).includes('descrizione') &&
+      normalize(line).includes('importo')
+    );
+
+    if (!headerLine) {
+      throw new Error('Non trovo le intestazioni Descrizione e Importo nel CSV.');
+    }
 
-$('rvRun').disabled = true;
-$('rvExport').disabled = true;
-$('rvResults').classList.add('hidden');
+    const start = lines.indexOf(headerLine);
+
+    return rowsToTransactions(
+      parseDelimited(
+        lines.slice(start).join('\n'),
+        detectDelimiter(headerLine)
+      )
+    );
+  }
+
+
+  async function readFile(file) {
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith('.csv')) {
+      return csvToTransactions(await file.text());
+    }
+
+    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      if (!window.XLSX) {
+        throw new Error('Libreria Excel non caricata. Ricarica la pagina con una connessione Internet.');
+      }
 
-try {
+      const bytes = await file.arrayBuffer();
 
-const text = await file.text();
+      const workbook = XLSX.read(bytes, {
+        type: 'array',
+        cellDates: true
+      });
+
+      if (!workbook.SheetNames.length) {
+        throw new Error('Il file Excel non contiene fogli.');
+      }
+
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-state.rows = readTransactions(text);
-updateCurrencyOptions();
+      return rowsToTransactions(
+        XLSX.utils.sheet_to_json(sheet,{
+          header:1,
+          raw:true,
+          defval:''
+        })
+      );
+    }
 
-$('rvRun').disabled = false;
+    throw new Error('Formato non supportato. Seleziona CSV, XLSX oppure XLS.');
+  }
+
+
+  function googleCsvUrl(raw) {
+    let url;
 
-$('rvStatus').textContent =
-`CSV letto correttamente: ${state.rows.length.toLocaleString('it-IT')} movimenti riconosciuti. Il filtro iniziale è MANGOPAY.`;
+    try {
+      url = new URL(raw.trim());
+    } catch {
+      throw new Error('Inserisci un link Google Sheets valido.');
+    }
 
-runAnalysis();
+    if (
+      !/(^|\.)docs\.google\.com$/.test(url.hostname) ||
+      !url.pathname.includes('/spreadsheets/')
+    ) {
+      throw new Error('Il link inserito non sembra un link di Fogli Google.');
+    }
 
-} catch(error) {
+    const gid =
+      url.searchParams.get('gid') ||
+      (url.hash.match(/gid=(\d+)/)?.[1]) ||
+      '0';
 
-state.rows = [];
+    const match = url.pathname.match(
+      /\/spreadsheets\/d\/(e\/)?([^/]+)/
+    );
 
-$('rvStatus').textContent =
-error.message || 'Errore durante la lettura del CSV.';
+    if (!match) {
+      throw new Error('Non riesco a leggere l’ID del foglio Google dal link.');
+    }
 
-$('rvCurrency').replaceChildren(
-new Option('Carica un CSV valido','')
-);
+    const isPublished = Boolean(match[1]);
+    const id = match[2];
 
-$('rvCurrency').disabled = true;
-}
-});
+    if (isPublished) {
+      const exportUrl = new URL(
+        `https://docs.google.com/spreadsheets/d/e/${id}/pub`
+      );
+
+      exportUrl.searchParams.set('output','csv');
 
-function runAnalysis() {
+      if (gid !== '0') {
+        exportUrl.searchParams.set('gid',gid);
+      }
 
-const query = normalize($('rvSearch').value);
+      return exportUrl.toString();
+    }
 
-if (!state.rows.length) {
-$('rvStatus').textContent = 'Carica prima un CSV Revolut.';
-return;
-}
+    return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(gid)}`;
+  }
 
-if (!query) {
-$('rvStatus').textContent = 'Inserisci un mittente o un testo da cercare nella descrizione.';
-return;
-}
 
-const from = $('rvFrom').value
-? new Date($('rvFrom').value+'T00:00:00')
-: null;
+  async function loadGoogleSheet() {
+    const raw = $('rvGoogleUrl').value.trim();
 
-const to = $('rvTo').value
-? new Date($('rvTo').value+'T23:59:59')
-: null;
+    if (!raw) {
+      showStatus('Incolla il link di Fogli Google.');
+      return;
+    }
 
-const currency = $('rvCurrency').value;
+    $('rvGoogleLoad').disabled = true;
+    $('rvRun').disabled = true;
+    $('rvExport').disabled = true;
+    $('rvResults').classList.add('hidden');
 
-const found = state.rows.filter(r =>
-normalize(r.description).includes(query) &&
-r.amount>0 &&
-!isRejectedState(r.status) &&
-r.currency===currency &&
-(!from || r.date>=from) &&
-(!to || r.date<=to)
-).sort((a,b)=>a.date-b.date);
+    showStatus('Importazione del foglio Google…');
 
-state.result = found;
+    try {
+      const url = googleCsvUrl(raw);
+      const response = await fetch(url);
 
-$('rvResults').classList.remove('hidden');
-$('rvExport').disabled = found.length===0;
+      if (!response.ok) {
+        throw new Error(`Google Sheets ha restituito l’errore ${response.status}.`);
+      }
+
+      const text = await response.text();
 
-const total = found.reduce((sum,r)=>sum+r.amount,0);
-const fees = found.reduce((sum,r)=>sum+Math.abs(r.cost),0);
-const average = found.length ? total/found.length : 0;
+      if (
+        /<html[\s>]/i.test(text) ||
+        /accounts\.google\.com/i.test(text.slice(0,1000))
+      ) {
+        throw new Error(
+          'Il foglio non è accessibile. In Google Sheets imposta Condividi → Chiunque abbia il link → Visualizzatore, poi riprova.'
+        );
+      }
 
-const months = new Map();
+      state.rows = csvToTransactions(text);
 
-for (const row of found) {
-const key = monthKey(row.date);
+      finishImport(
+        `Foglio Google importato: ${state.rows.length.toLocaleString('it-IT')} movimenti.`
+      );
 
-if (!months.has(key)) months.set(key,[]);
+    } catch (error) {
+      showStatus(
+        error.message || 'Non è stato possibile importare il foglio Google.'
+      );
 
-months.get(key).push(row);
-}
+    } finally {
+      $('rvGoogleLoad').disabled = false;
+    }
+  }
 
-const monthEntries = [...months.entries()]
-.sort((a,b)=>a[0].localeCompare(b[0]));
 
-const monthTotals = monthEntries.map(([key,rows])=>({
-key,
-rows,
-total:rows.reduce((s,r)=>s+r.amount,0)
-}));
+  function finishImport(message) {
+    $('rvRun').disabled = false;
+    showStatus(message);
+    runAnalysis();
+  }
 
-const largest = found.reduce(
-(best,r)=>!best || r.amount>best.amount?r:best,
-null
-);
 
-$('rvTotal').textContent = money(total,currency);
-$('rvCount').textContent = found.length.toLocaleString('it-IT');
-$('rvAverage').textContent = money(average,currency);
+  $('rvFile').addEventListener('change',async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-$('rvMonthlyAverage').textContent =
-money(monthTotals.length?total/monthTotals.length:0,currency);
+    $('rvFileName').textContent = file.name;
+    $('rvGoogleLoad').disabled = true;
+    $('rvRun').disabled = true;
+    $('rvExport').disabled = true;
+    $('rvResults').classList.add('hidden');
 
-$('rvLargest').textContent =
-largest?money(largest.amount,currency):money(0,currency);
+    showStatus('Importazione del file…');
 
-$('rvFees').textContent = money(fees,currency);
-$('rvNet').textContent = money(total-fees,currency);
+    try {
+      state.rows = await readFile(file);
 
-const bestMonth = monthTotals.reduce(
-(best,m)=>!best || m.total>best.total?m:best,
-null
-);
+      finishImport(
+        `File importato: ${state.rows.length.toLocaleString('it-IT')} movimenti.`
+      );
 
-$('rvBestMonth').textContent =
-bestMonth?monthLabel(bestMonth.key):'—';
+    } catch (error) {
+      state.rows = [];
+      showStatus(error.message || 'Errore durante la lettura del file.');
 
-const first = found[0]?.date;
-const last = found[found.length-1]?.date;
+    } finally {
+      $('rvGoogleLoad').disabled = false;
+      event.target.value = '';
+    }
+  });
 
-const dateFmt = d=>d?d.toLocaleDateString('it-IT'):'—';
 
-$('rvSummary').textContent = found.length
-? `Ricerca “${$('rvSearch').value}” · ${currency} · periodo: ${dateFmt(first)} – ${dateFmt(last)} · ${monthTotals.length} mesi con accrediti.`
-: `Nessun accredito corrispondente a “${$('rvSearch').value}” trovato per la valuta e il periodo selezionati.`;
+  function showStatus(message) {
+    $('rvStatus').style.display = 'block';
+    $('rvStatus').textContent = message;
+  }
 
-renderMonths(monthTotals,currency);
-renderTransactions(found,currency);
 
-$('rvStatus').textContent = found.length
-? `Analisi completata: ${found.length} accrediti positivi trovati.`
-: 'Nessun accredito trovato. Verifica descrizione, valuta e periodo.';
-}
+  function parseItalianFilter(value,endOfDay = false) {
+    const raw = String(value || '').trim();
 
-function renderMonths(months,currency) {
+    if (!raw) return null;
 
-const chart = $('rvChart');
-const tbody = $('rvMonthlyRows');
+    const match = raw.match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+    );
 
-chart.replaceChildren();
-tbody.replaceChildren();
+    if (!match) {
+      throw new Error('Inserisci le date nel formato gg/mm/aaaa.');
+    }
 
-if (!months.length) {
-chart.innerHTML =
-'<div class="rv-empty">Non ci sono accrediti da rappresentare nel periodo selezionato.</div>';
+    const date = new Date(
+      +match[3],
+      +match[2]-1,
+      +match[1],
+      endOfDay ? 23 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 59 : 0
+    );
 
-tbody.innerHTML =
-'<tr><td colspan="4">Nessun dato disponibile</td></tr>';
+    if (
+      date.getFullYear() !== +match[3] ||
+      date.getMonth() !== +match[2]-1 ||
+      date.getDate() !== +match[1]
+    ) {
+      throw new Error('Una delle date inserite non è valida. Usa il formato gg/mm/aaaa.');
+    }
 
-return;
-}
+    return date;
+  }
 
-const max = Math.max(...months.map(m=>m.total),0);
 
-for (const month of months) {
+  function rejectedStatus(value) {
+    return /pending|in sospeso|failed|fallit|declined|rifiutat|cancel|annullat|reverted|reversal|stornat|rejected|expired/i.test(normalize(value));
+  }
 
-const line = document.createElement('div');
-line.className = 'rv-chart-row';
 
-const label = document.createElement('span');
-label.textContent = monthLabel(month.key);
+  function money(value,currency) {
+    try {
+      return new Intl.NumberFormat('it-IT',{
+        style:'currency',
+        currency
+      }).format(value);
 
-const track = document.createElement('div');
-track.className = 'rv-bar-track';
-track.setAttribute('aria-label',money(month.total,currency));
+    } catch {
+      return new Intl.NumberFormat('it-IT',{
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+      }).format(value)+' '+currency;
+    }
+  }
 
-const bar = document.createElement('div');
-bar.className = 'rv-bar';
-bar.style.width =
-`${max?Math.max(1,month.total/max*100):0}%`;
 
-track.append(bar);
+  function monthKey(date) {
+    return date.getFullYear()+'-'+
+      String(date.getMonth()+1).padStart(2,'0');
+  }
 
-const value = document.createElement('span');
-value.className = 'rv-month-total';
-value.textContent = money(month.total,currency);
 
-line.append(label,track,value);
-chart.append(line);
+  function monthLabel(key) {
+    const [year,month] = key.split('-').map(Number);
 
-const tr = document.createElement('tr');
+    return new Intl.DateTimeFormat('it-IT',{
+      month:'long',
+      year:'numeric'
+    }).format(new Date(year,month-1,1));
+  }
 
-const cells = [
-monthLabel(month.key),
-month.rows.length.toLocaleString('it-IT'),
-money(month.total,currency),
-money(month.total/month.rows.length,currency)
-];
 
-cells.forEach((v,i)=>{
-const td = document.createElement('td');
-td.textContent = v;
-if (i>0) td.className = 'num';
-tr.append(td);
-});
+  function groupByCurrency(rows) {
+    const groups = new Map();
 
-tbody.append(tr);
-}
-}
+    for (const row of rows) {
+      if (!groups.has(row.currency)) {
+        groups.set(row.currency,[]);
+      }
 
-function renderTransactions(rows,currency) {
+      groups.get(row.currency).push(row);
+    }
 
-const tbody = $('rvTransactions');
-tbody.replaceChildren();
+    return groups;
+  }
 
-if (!rows.length) {
-tbody.innerHTML =
-'<tr><td colspan="6">Nessun accredito corrispondente</td></tr>';
-return;
-}
 
-for (const row of [...rows].sort((a,b)=>b.date-a.date)) {
+  function breakdown(rows,calculate) {
+    const groups = groupByCurrency(rows);
 
-const tr = document.createElement('tr');
+    if (!groups.size) return '—';
 
-const values = [
-row.date.toLocaleDateString('it-IT'),
-row.type || '—',
-row.description || '—',
-money(row.amount,currency),
-money(Math.abs(row.cost),currency),
-row.status || '—'
-];
+    return [...groups.entries()]
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([currency,items]) =>
+        money(calculate(items),currency)
+      )
+      .join('\n');
+  }
+
+
+  function runAnalysis() {
+    if (!state.rows.length) return;
 
-values.forEach((value,i)=>{
-const td = document.createElement('td');
-td.textContent = value;
+    const query = normalize($('rvSearch').value);
+
+    if (!query) {
+      showStatus('Inserisci il nome del mittente da cercare.');
+      return;
+    }
+
+    try {
+      const from = parseItalianFilter(
+        $('rvFrom').value,
+        false
+      );
+
+      const to = parseItalianFilter(
+        $('rvTo').value,
+        true
+      );
+
+      if (from && to && from > to) {
+        throw new Error(
+          'La data iniziale deve precedere la data finale.'
+        );
+      }
+
+      const found = state.rows
+        .filter(row =>
+          normalize(row.description).includes(query) &&
+          row.amount > 0 &&
+          !rejectedStatus(row.status) &&
+          (!from || row.date >= from) &&
+          (!to || row.date <= to)
+        )
+        .sort((a,b)=>a.date-b.date);
+
+      state.results = found;
+
+      $('rvResults').classList.remove('hidden');
+      $('rvExport').disabled = found.length === 0;
+
+      $('rvCount').textContent =
+        found.length.toLocaleString('it-IT');
+
+      $('rvTotal').textContent = breakdown(
+        found,
+        items => items.reduce((sum,r)=>sum+r.amount,0)
+      );
+
+      $('rvAverage').textContent = breakdown(
+        found,
+        items => items.reduce((sum,r)=>sum+r.amount,0)/items.length
+      );
+
+      $('rvFees').textContent = breakdown(
+        found,
+        items => items.reduce((sum,r)=>sum+Math.abs(r.cost),0)
+      );
+
+      $('rvNet').textContent = breakdown(
+        found,
+        items => items.reduce(
+          (sum,r)=>sum+r.amount-Math.abs(r.cost),0
+        )
+      );
+
+      $('rvLargest').textContent = breakdown(
+        found,
+        items => Math.max(...items.map(r=>r.amount))
+      );
 
-if (i===3) td.className = 'num rv-positive';
-if (i===4) td.className = 'num';
+      const monthGroups = new Map();
 
-tr.append(td);
-});
+      for (const row of found) {
+        const key = monthKey(row.date)+'|'+row.currency;
+
+        if (!monthGroups.has(key)) {
+          monthGroups.set(key,[]);
+        }
+
+        monthGroups.get(key).push(row);
+      }
+
+      const monthly = [...monthGroups.entries()]
+        .map(([key,items]) => {
+          const [month,currency] = key.split('|');
+
+          return {
+            month,
+            currency,
+            items,
+            total:items.reduce((sum,r)=>sum+r.amount,0)
+          };
+        })
+        .sort((a,b)=>
+          a.month.localeCompare(b.month) ||
+          a.currency.localeCompare(b.currency)
+        );
 
-tbody.append(tr);
-}
-}
+      const currencyMonths = new Map();
 
-$('rvRun').addEventListener('click',runAnalysis);
+      for (const item of monthly) {
+        if (!currencyMonths.has(item.currency)) {
+          currencyMonths.set(item.currency,[]);
+        }
 
-$('rvSearch').addEventListener('keydown',e=>{
-if (e.key==='Enter') runAnalysis();
-});
+        currencyMonths.get(item.currency).push(item);
+      }
 
-$('rvCurrency').addEventListener('change',runAnalysis);
-$('rvFrom').addEventListener('change',runAnalysis);
-$('rvTo').addEventListener('change',runAnalysis);
+      $('rvMonthlyAverage').textContent =
+        [...currencyMonths.entries()]
+          .map(([currency,months]) =>
+            `${money(months.reduce((sum,m)=>sum+m.total,0)/months.length,currency)} (${currency})`
+          )
+          .join('\n') || '—';
 
-$('rvReset').addEventListener('click',()=>{
-$('rvSearch').value = 'MANGOPAY';
-$('rvFrom').value = '';
-$('rvTo').value = '';
+      const bestByCurrency = [...currencyMonths.entries()]
+        .map(([currency,months]) => {
+          const best = months.reduce(
+            (a,b)=>!a || b.total>a.total?b:a,
+            null
+          );
 
-if (state.rows.length) runAnalysis();
-});
+          return `${currency}: ${monthLabel(best.month)}`;
+        });
+
+      $('rvBestMonth').textContent =
+        bestByCurrency.join('\n') || '—';
+
+      renderMonthly(monthly);
+      renderTransactions(found);
 
-$('rvExport').addEventListener('click',()=>{
+      const dates = found
+        .map(r=>r.date)
+        .sort((a,b)=>a-b);
 
-if (!state.result.length) return;
+      $('rvSummary').textContent = found.length
+        ? `${found.length.toLocaleString('it-IT')} accrediti trovati per “${$('rvSearch').value}”, dal ${dates[0].toLocaleDateString('it-IT')} al ${dates[dates.length-1].toLocaleDateString('it-IT')}. Le valute diverse restano separate.`
+        : `Nessun accredito trovato per “${$('rvSearch').value}”.`;
 
-const quote = value =>
-'"'+String(value ?? '').replace(/"/g,'""')+'"';
+      showStatus(
+        found.length
+          ? `Analisi completata: ${found.length.toLocaleString('it-IT')} accrediti trovati.`
+          : 'Analisi completata: nessun accredito corrispondente.'
+      );
 
-const lines = [
-['Data di completamento','Tipo','Descrizione','Importo','Costo','Valuta','State'],
-...state.result.map(r=>[
-r.date.toLocaleDateString('it-IT'),
-r.type,
-r.description,
-r.amount.toFixed(2),
-Math.abs(r.cost).toFixed(2),
-r.currency,
-r.status
-])
-];
+    } catch (error) {
+      showStatus(error.message || 'Controlla i filtri inseriti.');
+    }
+  }
 
-const csv = '\uFEFF'+
-lines.map(row=>row.map(quote).join(';')).join('\r\n');
 
-const url = URL.createObjectURL(
-new Blob([csv],{type:'text/csv;charset=utf-8'})
-);
+  function renderMonthly(monthly) {
+    const chart = $('rvChart');
+    const tbody = $('rvMonthlyRows');
+
+    chart.replaceChildren();
+    tbody.replaceChildren();
 
-const a = document.createElement('a');
-a.href = url;
-a.download = 'analisi_revolut_mittente.csv';
-a.click();
+    if (!monthly.length) {
+      chart.innerHTML =
+        '<div class="rv-empty">Nessun dato nel periodo selezionato.</div>';
 
-URL.revokeObjectURL(url);
-});
+      tbody.innerHTML =
+        '<tr><td colspan="5">Nessun dato disponibile</td></tr>';
+
+      return;
+    }
+
+    const maxByCurrency = new Map();
+
+    for (const month of monthly) {
+      maxByCurrency.set(
+        month.currency,
+        Math.max(
+          maxByCurrency.get(month.currency) || 0,
+          month.total
+        )
+      );
+    }
+
+    for (const month of monthly) {
+      const line = document.createElement('div');
+      line.className = 'rv-chart-row';
+
+      const label = document.createElement('span');
+      label.textContent =
+        `${monthLabel(month.month)} · ${month.currency}`;
+
+      const track = document.createElement('div');
+      track.className = 'rv-bar-track';
+
+      const bar = document.createElement('div');
+      bar.className = 'rv-bar';
+
+      const max = maxByCurrency.get(month.currency) || 0;
+
+      bar.style.width =
+        `${max ? Math.max(1,month.total/max*100) : 0}%`;
+
+      track.append(bar);
+
+      const value = document.createElement('span');
+      value.className = 'rv-month-total';
+      value.textContent = money(month.total,month.currency);
+
+      line.append(label,track,value);
+      chart.append(line);
+
+      const tr = document.createElement('tr');
+
+      const cells = [
+        monthLabel(month.month),
+        month.currency,
+        month.items.length.toLocaleString('it-IT'),
+        money(month.total,month.currency),
+        money(month.total/month.items.length,month.currency)
+      ];
+
+      cells.forEach((v,i)=>{
+        const td = document.createElement('td');
+        td.textContent = v;
+        if (i>1) td.className = 'num';
+        tr.append(td);
+      });
+
+      tbody.append(tr);
+    }
+  }
+
+
+  function renderTransactions(rows) {
+    const tbody = $('rvTransactions');
+
+    tbody.replaceChildren();
+
+    if (!rows.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="7">Nessun accredito trovato.</td></tr>';
+
+      return;
+    }
+
+    for (const row of [...rows].sort((a,b)=>b.date-a.date)) {
+      const tr = document.createElement('tr');
+
+      const values = [
+        row.date.toLocaleDateString('it-IT'),
+        row.type || '—',
+        row.description || '—',
+        money(row.amount,row.currency),
+        money(Math.abs(row.cost),row.currency),
+        row.currency,
+        row.status || '—'
+      ];
+
+      values.forEach((value,i)=>{
+        const td = document.createElement('td');
+        td.textContent = value;
+
+        if (i===3 || i===4) td.className = 'num';
+
+        tr.append(td);
+      });
+
+      tbody.append(tr);
+    }
+  }
+
+
+  function resetAnalysis() {
+    $('rvSearch').value = 'MANGOPAY';
+    $('rvFrom').value = '';
+    $('rvTo').value = '';
+
+    if (state.rows.length) {
+      runAnalysis();
+    }
+  }
+
+
+  function exportResults() {
+    if (!state.results.length) return;
+
+    const quote = value =>
+      '"' + String(value ?? '').replace(/"/g,'""') + '"';
+
+    const rows = [
+      ['Data','Tipo','Descrizione','Importo','Costo','Valuta','State'],
+      ...state.results.map(r=>[
+        r.date.toLocaleDateString('it-IT'),
+        r.type,
+        r.description,
+        r.amount.toFixed(2),
+        Math.abs(r.cost).toFixed(2),
+        r.currency,
+        r.status
+      ])
+    ];
+
+    const csv = '\uFEFF' +
+      rows.map(row=>row.map(quote).join(';')).join('\r\n');
+
+    const url = URL.createObjectURL(
+      new Blob([csv],{type:'text/csv;charset=utf-8'})
+    );
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'analisi_revolut.csv';
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+
+  $('rvFile').addEventListener('change',async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    $('rvFileName').textContent = file.name;
+
+    $('rvResults').classList.add('hidden');
+    $('rvRun').disabled = true;
+    $('rvExport').disabled = true;
+
+    showStatus('Importazione del file…');
+
+    try {
+      state.rows = await readFile(file);
+
+      $('rvRun').disabled = false;
+
+      showStatus(
+        `File importato: ${state.rows.length.toLocaleString('it-IT')} movimenti.`
+      );
+
+      runAnalysis();
+
+    } catch (error) {
+      state.rows = [];
+
+      showStatus(
+        error.message || 'Errore durante la lettura del file.'
+      );
+
+    } finally {
+      event.target.value = '';
+    }
+  });
+
+
+  $('rvGoogleLoad').addEventListener(
+    'click',
+    loadGoogleSheet
+  );
+
+  $('rvGoogleUrl').addEventListener('keydown',event=>{
+    if (event.key==='Enter') loadGoogleSheet();
+  });
+
+  $('rvRun').addEventListener('click',runAnalysis);
+
+  $('rvSearch').addEventListener('keydown',event=>{
+    if (event.key==='Enter') runAnalysis();
+  });
+
+  $('rvFrom').addEventListener('change',runAnalysis);
+  $('rvTo').addEventListener('change',runAnalysis);
+  $('rvReset').addEventListener('click',resetAnalysis);
+  $('rvExport').addEventListener('click',exportResults);
 
 })();
 </script>
-
 </body>
 </html>
