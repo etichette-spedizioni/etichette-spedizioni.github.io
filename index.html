@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -701,9 +700,12 @@ const PREVIOUS_MARKERS = [
 // 24 MB decimali: margine di sicurezza sotto il limite richiesto di 25 MB.
 // La divisione avviene solo tra pagine A4 complete, mai tagliando un'etichetta.
 const MAX_PART_BYTES = 24000000;
-const PREVIEW_MAX_WIDTH = 340;
-const PREVIEW_SCALE_MAX = 0.52;
-const PREVIEW_JPEG_QUALITY = 0.62;
+// Anteprima ad alta definizione (circa 2x rispetto alla larghezza mostrata a schermo).
+// Il rendering usa un solo canvas riutilizzato pagina per pagina: la memoria temporanea
+// resta contenuta e i PDF scaricati non vengono ricampionati né modificati.
+const PREVIEW_MAX_WIDTH = 680;
+const PREVIEW_SCALE_MAX = 1.15;
+const PREVIEW_JPEG_QUALITY = 0.86;
 const MAX_QUADRANT_SHRINK = 0.02;
 
 let downloadUrls = [];
@@ -867,7 +869,7 @@ input.addEventListener('change',async()=>{
     createDownloadLinks(parts);
     result.style.display='block';
 
-    statusBox.textContent='Sto preparando l’anteprima…';
+    statusBox.textContent='PDF pronti. Sto preparando l’anteprima ad alta definizione…';
     let previewWarning='';
     try{
       await renderPreviews(parts);
@@ -1114,32 +1116,66 @@ async function createSizeLimitedParts(master,layoutCodes){
   await yieldToBrowser();
 
   const pageCount=layoutCodes.length;
-  async function buildRange(start,end){
+
+  // Crea e salva un intervallo CONTIGUO di pagine A4 complete.
+  // Ogni tentativo usa un documento temporaneo, così non si accumulano
+  // copie di pagine o buffer di tutti i tentativi in memoria.
+  async function saveRange(start,end){
     const partDoc=await PDFLib.PDFDocument.create();
     const indices=Array.from({length:end-start},(_,i)=>start+i);
     const pages=await partDoc.copyPages(master,indices);
     for(const page of pages)partDoc.addPage(page);
-    const codes=layoutCodes.slice(start,end);
-    setPartMetadata(partDoc,codes);
-    let bytes=await partDoc.save(saveOptions);
-    if(bytes.byteLength<=MAX_PART_BYTES){
-      const blob=new Blob([bytes],{type:'application/pdf'});
-      const item={blob,size:bytes.byteLength,start,end,pageCount:end-start};
-      bytes=null;
-      return [item];
-    }
-    bytes=null;
-    if(end-start===1){
-      throw new Error(`La pagina A4 ${start+1} da sola supera 25 MB. Non posso dividerla ulteriormente senza separare o modificare un'etichetta; il PDF non è stato reso scaricabile.`);
-    }
-    await yieldToBrowser();
-    const middle=start+Math.floor((end-start)/2);
-    const left=await buildRange(start,middle);
-    const right=await buildRange(middle,end);
-    return left.concat(right);
+    setPartMetadata(partDoc,layoutCodes.slice(start,end));
+    return await partDoc.save(saveOptions);
   }
 
-  const parts=await buildRange(0,pageCount);
+  const parts=[];
+  let start=0;
+
+  // Strategia greedy: per ogni file prende il blocco consecutivo più lungo
+  // che resta sotto il limite. In questo modo si ottiene il minor numero
+  // di parti possibile senza riordinare, saltare o dividere pagine A4.
+  while(start<pageCount){
+    let low=start+1;
+    let high=pageCount;
+    let bestEnd=start;
+    let bestBytes=null;
+
+    // Ricerca binaria del punto di taglio migliore, misurando il PDF reale
+    // prodotto da pdf-lib (non una stima basata sul numero di pagine).
+    while(low<=high){
+      const middle=start+Math.floor((low-start+high-start)/2);
+      let candidateBytes=await saveRange(start,middle);
+
+      if(candidateBytes.byteLength<=MAX_PART_BYTES){
+        bestEnd=middle;
+        bestBytes=candidateBytes;
+        candidateBytes=null;
+        low=middle+1;
+      }else{
+        candidateBytes=null;
+        high=middle-1;
+      }
+      await yieldToBrowser();
+    }
+
+    if(bestEnd===start || !bestBytes){
+      throw new Error(`La pagina A4 ${start+1} da sola supera 25 MB. Non posso dividerla ulteriormente senza separare o modificare un'etichetta; il PDF non è stato reso scaricabile.`);
+    }
+
+    const blob=new Blob([bestBytes],{type:'application/pdf'});
+    parts.push({
+      blob,
+      size:bestBytes.byteLength,
+      start,
+      end:bestEnd,
+      pageCount:bestEnd-start
+    });
+    bestBytes=null;
+    start=bestEnd;
+    await yieldToBrowser();
+  }
+
   const total=parts.length;
   parts.forEach((part,index)=>{
     part.name=`etichette_pronte_A4_parte_${index+1}_di_${total}.pdf`;
@@ -1174,50 +1210,102 @@ async function renderPreviews(parts){
   let globalPage=0;
   const totalPages=parts.reduce((sum,part)=>sum+part.pageCount,0);
 
-  for(let partIndex=0;partIndex<parts.length;partIndex++){
-    const part=parts[partIndex];
-    const buffer=await part.blob.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise;
-    const partHeading=document.createElement('p');
-    partHeading.className='page-name';
-    partHeading.style.fontWeight='650';
-    partHeading.textContent=parts.length>1?`Anteprima — parte ${partIndex+1} di ${parts.length}`:'Anteprima';
-    preview.append(partHeading);
+  // Un solo canvas viene riutilizzato per tutte le pagine: non vengono creati
+  // tanti canvas contemporaneamente e la bitmap temporanea non si accumula.
+  const canvas=document.createElement('canvas');
+  const context=canvas.getContext('2d',{alpha:false});
+  if(!context)throw new Error('Impossibile generare l’anteprima.');
 
-    for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
-      globalPage++;
-      const page=await pdf.getPage(pageNo);
-      const host=document.createElement('article');
-      host.className='preview-page';
-      const title=document.createElement('p');
-      title.className='page-name';
-      title.textContent=`Foglio A4 ${globalPage} di ${totalPages}`;
-      const image=document.createElement('img');
-      image.alt=`Anteprima foglio A4 ${globalPage}`;
-      image.loading='lazy';
-      host.append(title,image);
-      preview.append(host);
+  try{
+    for(let partIndex=0;partIndex<parts.length;partIndex++){
+      const part=parts[partIndex];
+      let pdf=null;
+      let loadingTask=null;
+      let buffer=null;
 
-      const base=page.getViewport({scale:1});
-      const scale=Math.min(PREVIEW_SCALE_MAX,PREVIEW_MAX_WIDTH/base.width);
-      const viewport=page.getViewport({scale});
-      const canvas=document.createElement('canvas');
-      canvas.width=Math.max(1,Math.ceil(viewport.width));
-      canvas.height=Math.max(1,Math.ceil(viewport.height));
-      const context=canvas.getContext('2d',{alpha:false});
-      if(!context)throw new Error('Impossibile generare l’anteprima.');
-      await page.render({canvasContext:context,viewport}).promise;
-      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',PREVIEW_JPEG_QUALITY));
-      canvas.width=0;
-      canvas.height=0;
-      if(!blob)throw new Error('Non riesco a comprimere l’anteprima.');
-      const imageUrl=URL.createObjectURL(blob);
-      previewUrls.push(imageUrl);
-      image.src=imageUrl;
-      page.cleanup();
-      await yieldToBrowser();
+      try{
+        buffer=await part.blob.arrayBuffer();
+        loadingTask=pdfjsLib.getDocument({
+          data:new Uint8Array(buffer),
+          disableAutoFetch:true,
+          disableStream:true
+        });
+        pdf=await loadingTask.promise;
+        buffer=null;
+
+        const partHeading=document.createElement('p');
+        partHeading.className='page-name';
+        partHeading.style.fontWeight='650';
+        partHeading.textContent=parts.length>1
+          ? `Anteprima — parte ${partIndex+1} di ${parts.length}`
+          : 'Anteprima';
+        preview.append(partHeading);
+
+        for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
+          globalPage++;
+          const page=await pdf.getPage(pageNo);
+          const host=document.createElement('article');
+          host.className='preview-page';
+
+          const title=document.createElement('p');
+          title.className='page-name';
+          title.textContent=`Foglio A4 ${globalPage} di ${totalPages}`;
+
+          const image=document.createElement('img');
+          image.alt=`Anteprima nitida foglio A4 ${globalPage}`;
+          image.loading='lazy';
+          image.decoding='async';
+          host.append(title,image);
+          preview.append(host);
+
+          // Renderizza a circa 2x la dimensione visibile: testo e codici a barre
+          // risultano più definiti anche sugli schermi ad alta densità.
+          const base=page.getViewport({scale:1});
+          const scale=Math.min(PREVIEW_SCALE_MAX,PREVIEW_MAX_WIDTH/base.width);
+          const viewport=page.getViewport({scale});
+          const width=Math.max(1,Math.ceil(viewport.width));
+          const height=Math.max(1,Math.ceil(viewport.height));
+
+          if(canvas.width!==width)canvas.width=width;
+          if(canvas.height!==height)canvas.height=height;
+          context.fillStyle='#ffffff';
+          context.fillRect(0,0,width,height);
+
+          const renderTask=page.render({
+            canvasContext:context,
+            viewport,
+            background:'#ffffff'
+          });
+          await renderTask.promise;
+
+          const blob=await new Promise(resolve=>
+            canvas.toBlob(resolve,'image/jpeg',PREVIEW_JPEG_QUALITY)
+          );
+          if(!blob)throw new Error('Non riesco a comprimere l’anteprima.');
+
+          const imageUrl=URL.createObjectURL(blob);
+          previewUrls.push(imageUrl);
+          image.src=imageUrl;
+
+          // Libera le risorse della pagina prima di passare alla successiva.
+          page.cleanup();
+          await yieldToBrowser();
+        }
+      }finally{
+        if(pdf){
+          await pdf.destroy().catch(()=>{});
+          pdf=null;
+        }else if(loadingTask){
+          await loadingTask.destroy().catch(()=>{});
+        }
+        buffer=null;
+      }
     }
-    await pdf.destroy();
+  }finally{
+    // Rilascia la bitmap temporanea: le anteprime visualizzate sono JPEG
+    // indipendenti e non dipendono più dal canvas.
+    canvas.width=0;
+    canvas.height=0;
   }
 }
 </script>
