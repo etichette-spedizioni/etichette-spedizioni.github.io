@@ -686,15 +686,17 @@ const A4 = {width:595.2756,height:841.8898};
 const HALF_W = A4.width/2;
 const HALF_H = A4.height/2;
 
-const LAYOUT_MARKER = 'ETICHETTE_SPEDIZIONI_LAYOUT_V5';
+// Firma specifica dei PDF creati da questa versione.
+const LAYOUT_MARKER = 'ETICHETTE_SPEDIZIONI_LAYOUT_V6';
 
+// Le versioni precedenti non vengono importate come PDF già pronti.
 const PREVIOUS_MARKERS = [
   'ETICHETTE_SPEDIZIONI_LAYOUT_V3',
-  'ETICHETTE_SPEDIZIONI_LAYOUT_V4'
+  'ETICHETTE_SPEDIZIONI_LAYOUT_V4',
+  'ETICHETTE_SPEDIZIONI_LAYOUT_V5'
 ];
 
 const MAX_QUADRANT_SHRINK = 0.02;
-
 let currentUrl = null;
 
 button.addEventListener('click',()=>input.click());
@@ -741,29 +743,30 @@ input.addEventListener('change',async()=>{
         info.Title || info.title || ''
       ].join(' ').toUpperCase();
 
-      const isV5=metaText.includes(LAYOUT_MARKER);
+      // Solo i PDF creati dalla versione 6 sono ricaricabili.
+      const isV6=metaText.includes(LAYOUT_MARKER);
 
       const oldVersion=PREVIOUS_MARKERS.find(marker=>
         metaText.includes(marker)
       );
 
-      if(oldVersion && !isV5){
+      if(oldVersion && !isV6){
         throw new Error(
-          `Il file "${file.name}" è stato creato con una versione precedente. Seleziona i PDF originali e ricrealo.`
+          `Il file "${file.name}" è stato creato con una versione precedente. Questa versione importa solo PDF creati dalla versione 6. Per riutilizzarlo, seleziona i PDF originali e ricrealo.`
         );
       }
 
-      const generatedLayout=isV5
+      const generatedLayout=isV6
         ? parseGeneratedLayout(subject)
         : null;
 
-      if(isV5 && !generatedLayout){
+      if(isV6 && !generatedLayout){
         throw new Error(
           `Il PDF "${file.name}" contiene una mappa delle etichette non leggibile.`
         );
       }
 
-      if(isV5 && generatedLayout.length!==pdfJsDoc.numPages){
+      if(isV6 && generatedLayout.length!==pdfJsDoc.numPages){
         throw new Error(
           `La mappa del PDF "${file.name}" non corrisponde al numero delle pagine.`
         );
@@ -780,10 +783,11 @@ input.addEventListener('change',async()=>{
         const sourceHeight=sourcePage.getHeight();
         const pageIndex=pageNumber-1;
 
-        if(isV5){
+        // Recupero esatto delle etichette dai PDF V6.
+        if(isV6){
           if(!isA4Portrait(sourceWidth,sourceHeight)){
             throw new Error(
-              `La pagina ${pageNumber} del PDF V5 "${file.name}" non è in formato A4 verticale.`
+              `La pagina ${pageNumber} del PDF V6 "${file.name}" non è in formato A4 verticale.`
             );
           }
 
@@ -821,6 +825,7 @@ input.addEventListener('change',async()=>{
           continue;
         }
 
+        // Riconoscimento dei PDF originali.
         const textContent=await jsPage.getTextContent();
 
         const text=textContent.items
@@ -833,7 +838,7 @@ input.addEventListener('change',async()=>{
 
         if(!kind){
           throw new Error(
-            `Formato non riconosciuto: ${file.name}, pagina ${pageNumber}.`
+            `Formato non riconosciuto: ${file.name}, pagina ${pageNumber}. Sono supportati i PDF originali InPost, Poste Italiane, BRT e DPD con istruzioni, oppure i PDF già creati dalla versione 6.`
           );
         }
 
@@ -873,7 +878,7 @@ input.addEventListener('change',async()=>{
     const importedTotal=importedInpost+importedOther;
 
     const importedMessage=importedTotal
-      ? ` Recuperate ${importedTotal} etichette dal PDF V5 già preparato.`
+      ? ` Recuperate ${importedTotal} etichette dal PDF V6 già preparato (${importedInpost} InPost e ${importedOther} altre).`
       : '';
 
     statusBox.textContent=
@@ -952,12 +957,14 @@ function makeItem(fileName,pageNumber,sourceDoc,pageIndex,kind,crop){
 function classifySourcePage(text){
   const normalized=String(text || '').toLowerCase();
 
+  // INPOST
   if(
     normalized.includes('deposito') &&
     normalized.includes('giro') &&
     normalized.includes('mittente')
   )return 'inpost';
 
+  // DPD CON ISTRUZIONI
   if(
     (
       normalized.includes("stampare l'etichetta") ||
@@ -967,6 +974,19 @@ function classifySourcePage(text){
     normalized.includes('order reference')
   )return 'instructions';
 
+  // POSTE ITALIANE / POSTE DELIVERY BUSINESS.
+  // Riconoscimento basato sul testo effettivamente presente
+  // nel PDF campione: www.poste.it e Lettera di vettura.
+  if(
+    normalized.includes('www.poste.it') &&
+    normalized.includes('lettera di vettura') &&
+    (
+      normalized.includes('punto poste') ||
+      normalized.includes('poste italiane')
+    )
+  )return 'poste';
+
+  // BRT / DPD
   if(
     normalized.includes('terms & conditions of services') ||
     normalized.includes('www.dpd.com') ||
@@ -980,6 +1000,7 @@ function classifySourcePage(text){
 function getSourceCrop(kind,width,height){
   if(kind==='inpost')return null;
 
+  // DPD con istruzioni: ritaglia soltanto l'etichetta.
   if(kind==='instructions'){
     return {
       left:width*0.143277,
@@ -989,12 +1010,33 @@ function getSourceCrop(kind,width,height){
     };
   }
 
+  // BRT: ritaglio del modello fornito.
   if(kind==='brt'){
     return {
       left:width*0.075427,
       bottom:height*(1-0.625973),
       right:width*0.542102,
       top:height*(1-0.175082)
+    };
+  }
+
+  // POSTE ITALIANE / POSTE DELIVERY BUSINESS.
+  // Ritaglio dell'intera etichetta, compresi:
+  // - entrambi i QR code;
+  // - tutti i codici a barre laterali;
+  // - il codice verticale;
+  // - logo, dati e condizioni di consegna.
+  // Rimane soltanto un piccolo margine bianco esterno.
+  //
+  // Dimensione circa 111,95 x 100,63 mm.
+  // Ruotata di 90° diventa 100,63 x 111,95 mm:
+  // entra nel quadrante da 105 x 148,5 mm senza riduzione.
+  if(kind==='poste'){
+    return {
+      left:width*0.096004,
+      bottom:height*0.600111,
+      right:width*0.629107,
+      top:height*0.938943
     };
   }
 
@@ -1027,7 +1069,11 @@ function getHalfCrops(width,height){
 
 async function embedLabel(out,item){
   const sourcePage=item.sourceDoc.getPages()[item.pageIndex];
-  return await out.embedPage(sourcePage,item.crop || undefined);
+
+  return await out.embedPage(
+    sourcePage,
+    item.crop || undefined
+  );
 }
 
 
@@ -1104,7 +1150,10 @@ function drawFitted(page,embedded,box,fit){
 
   if(fit.rotation===0){
     page.drawPage(embedded,{
-      x:left,y:bottom,width:drawWidth,height:drawHeight
+      x:left,
+      y:bottom,
+      width:drawWidth,
+      height:drawHeight
     });
 
   }else{
