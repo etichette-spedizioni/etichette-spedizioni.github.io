@@ -531,11 +531,11 @@ button, input {
       <div class="rv-fields">
 
         <div class="rv-field">
-          <label for="rvSearch">Mittente</label>
+          <label for="rvSearch">Mittente o descrizione</label>
           <input id="rvSearch"
             type="text"
             value="MANGOPAY"
-            placeholder="Es. MANGOPAY">
+            placeholder="Es. MANGOPAY, interessi, deposito">
         </div>
 
         <div class="rv-field">
@@ -1389,7 +1389,10 @@ async function renderPreviews(parts){
       /(^|\s)[−-]\s*\d/.test(s);
 
     s=s
-      .replace(/[€$£\s\u00a0'’()]/g,'')
+      // Alcuni XLSX Revolut contengono il simbolo euro serializzato
+      // come sequenza letterale, ad esempio "â_x0082_¬".
+      .replace(/â?_x[0-9a-f]{4}_/gi,'')
+      .replace(/[€$£¬\s\u00a0'’()]/g,'')
       .replace(/[−]/g,'-')
       .replace(/[^0-9,.-]/g,'');
 
@@ -1525,6 +1528,42 @@ async function renderPreviews(parts){
       );
     }
 
+    // Revolut savings-statement in italiano esporta le date come
+    // "1 ott 2026", mentre account-statement usa celle data standard.
+    const italianDate=normalize(s).match(
+      /^(\d{1,2})\s+([a-z]+)\.?\s+(\d{4})(?:[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+    );
+
+    if(italianDate){
+      const monthAliases={
+        gen:1, gennaio:1,
+        feb:2, febbraio:2,
+        mar:3, marzo:3,
+        apr:4, aprile:4,
+        mag:5, maggio:5,
+        giu:6, giugno:6,
+        lug:7, luglio:7,
+        ago:8, agosto:8,
+        set:9, settembre:9,
+        ott:10, ottobre:10,
+        nov:11, novembre:11,
+        dic:12, dicembre:12
+      };
+
+      const month=monthAliases[italianDate[2]];
+
+      if(month){
+        return validDate(
+          +italianDate[3],
+          month,
+          +italianDate[1],
+          +(italianDate[4]||0),
+          +(italianDate[5]||0),
+          +(italianDate[6]||0)
+        );
+      }
+    }
+
     return null;
   }
 
@@ -1611,15 +1650,16 @@ async function renderPreviews(parts){
   /* RICONOSCIMENTO DELLE COLONNE */
 
   function findHeaderRow(rows){
+    const descriptionAliases=['descrizione','description'];
+    // Nei rendiconti del conto corrente Revolut l'importo è "Importo";
+    // nei rendiconti del conto deposito/savings è invece "Entrate".
+    const amountAliases=['importo','amount','entrate','income','incomes'];
+
     return rows.findIndex(row=>{
       const headers=row.map(normalize);
 
-      return headers.some(v=>
-        ['descrizione','description'].includes(v)
-      ) &&
-      headers.some(v=>
-        ['importo','amount'].includes(v)
-      );
+      return headers.some(v=>descriptionAliases.includes(v)) &&
+        headers.some(v=>amountAliases.includes(v));
     });
   }
 
@@ -1629,7 +1669,7 @@ async function renderPreviews(parts){
 
     const aliases={
       description:['descrizione','description'],
-      amount:['importo','amount'],
+      amount:['importo','amount','entrate','income','incomes'],
 
       completedDate:[
         'data di completamento',
@@ -1643,6 +1683,15 @@ async function renderPreviews(parts){
         'started date',
         'start date',
         'data inizio'
+      ],
+
+      // Il file savings-statement usa una sola colonna "Data".
+      date:[
+        'data',
+        'date',
+        'data operazione',
+        'operation date',
+        'transaction date'
       ],
 
       status:['state','stato']
@@ -1659,8 +1708,12 @@ async function renderPreviews(parts){
     if(columns.description<0)missing.push('Descrizione');
     if(columns.amount<0)missing.push('Importo');
 
-    if(columns.completedDate<0 && columns.startDate<0){
-      missing.push('Data di completamento o Data di inizio');
+    if(
+      columns.completedDate<0 &&
+      columns.startDate<0 &&
+      columns.date<0
+    ){
+      missing.push('Data, Data di completamento o Data di inizio');
     }
 
     if(missing.length){
@@ -1699,7 +1752,8 @@ async function renderPreviews(parts){
 
       const date=
         parseDate(get('completedDate')) ||
-        parseDate(get('startDate'));
+        parseDate(get('startDate')) ||
+        parseDate(get('date'));
 
       const amount=parseAmount(get('amount'));
 
@@ -1712,6 +1766,12 @@ async function renderPreviews(parts){
         status:String(get('status') ?? '').trim()
       });
     }
+
+    // Conserva il tipo di rendiconto per impostare il filtro iniziale corretto.
+    output.sourceType=
+      normalize(headers[columns.amount])==='entrate'
+        ? 'savings'
+        : 'account';
 
     if(!output.length){
       throw new Error(
@@ -1734,7 +1794,12 @@ async function renderPreviews(parts){
       const n=normalize(line);
 
       return n.includes('descrizione') &&
-        n.includes('importo');
+        (
+          n.includes('importo') ||
+          n.includes('entrate') ||
+          n.includes('amount') ||
+          n.includes('income')
+        );
     });
 
     if(headerIndex<0){
@@ -1881,6 +1946,14 @@ async function renderPreviews(parts){
 
       state.rows=await readFile(file);
 
+      // Il savings-statement non contiene il mittente: mostra subito tutte
+      // le entrate. Per account-statement mantiene il filtro MANGOPAY.
+      if(state.rows.sourceType==='savings'){
+        $('rvSearch').value='';
+      }else if(!$('rvSearch').value.trim()){
+        $('rvSearch').value='MANGOPAY';
+      }
+
       $('rvRun').disabled=false;
 
       showStatus(
@@ -1911,11 +1984,8 @@ async function renderPreviews(parts){
 
     const query=normalize($('rvSearch').value);
 
-    if(!query){
-      showStatus('Inserisci il nome del mittente.');
-      return;
-    }
-
+    // Il campo può restare vuoto: in tal caso vengono considerate
+    // tutte le entrate presenti nel file.
     try{
 
       const from=getFilterDate($('rvFrom').value,false);
@@ -1929,7 +1999,7 @@ async function renderPreviews(parts){
 
       const found=state.rows
         .filter(row=>
-          normalize(row.description).includes(query) &&
+          (!query || normalize(row.description).includes(query)) &&
           row.amount>0 &&
           !isRejectedStatus(row.status) &&
           (!from || row.date>=from) &&
